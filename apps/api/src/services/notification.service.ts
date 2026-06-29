@@ -185,6 +185,64 @@ function dangerNote(text: string): string {
   return `<p style="margin:0 0 24px;font-size:15px;color:${B.danger};line-height:1.7;padding:16px 0;border-top:1px solid ${B.lavender};border-bottom:1px solid ${B.lavender};">${text}</p>`;
 }
 
+// ─── Order Status Pipeline ──────────────────────────────────────────────────
+
+const PIPELINE_STEPS = [
+  { key: 'pending_payment', label: 'Placed' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'processing', label: 'Processing' },
+  { key: 'dispatched', label: 'Shipped' },
+  { key: 'delivered', label: 'Delivered' },
+] as const;
+
+function statusPipeline(currentStatus: string): string {
+  const currentIdx = PIPELINE_STEPS.findIndex((s) => {
+    if (currentStatus === 'packed') return s.key === 'processing';
+    if (currentStatus === 'out_for_delivery') return s.key === 'dispatched';
+    return s.key === currentStatus;
+  });
+
+  const dots = PIPELINE_STEPS.map((step, i) => {
+    const isCompleted = i < currentIdx;
+    const isCurrent = i === currentIdx;
+    const labelColor = isCurrent ? B.violet : isCompleted ? B.sub : B.muted;
+    const fontWeight = isCurrent ? '700' : '400';
+
+    // Filled circle for completed/current, hollow for future
+    const dot = isCompleted
+      ? `<div style="width:20px;height:20px;border-radius:50%;background:${B.violet};margin:0 auto;">
+           <table width="20" height="20" cellpadding="0" cellspacing="0"><tr><td align="center" valign="middle" style="color:#fff;font-size:11px;line-height:20px;">&#10003;</td></tr></table>
+         </div>`
+      : isCurrent
+      ? `<div style="width:20px;height:20px;border-radius:50%;background:${B.violet};margin:0 auto;">
+           <table width="20" height="20" cellpadding="0" cellspacing="0"><tr><td align="center" valign="middle" style="color:#fff;font-size:9px;line-height:20px;">&#9679;</td></tr></table>
+         </div>`
+      : `<div style="width:20px;height:20px;border-radius:50%;border:2px solid #d1d1d8;margin:0 auto;box-sizing:border-box;"></div>`;
+
+    return `<td align="center" valign="top" style="padding:0 2px;">
+      ${dot}
+      <p style="margin:6px 0 0;font-size:10px;color:${labelColor};font-weight:${fontWeight};line-height:1.3;">${step.label}</p>
+    </td>`;
+  });
+
+  // Build connector lines between dots
+  const cells: string[] = [];
+  for (let i = 0; i < PIPELINE_STEPS.length; i++) {
+    if (i > 0) {
+      const lineColor = i <= currentIdx ? B.violet : '#d1d1d8';
+      cells.push(`<td valign="top" style="padding-top:9px;"><div style="height:2px;background:${lineColor};width:100%;"></div></td>`);
+    }
+    cells.push(dots[i]);
+  }
+
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 28px;">
+      <tr>
+        ${cells.join('')}
+      </tr>
+    </table>`;
+}
+
 function cta(label: string, url: string): string {
   return `
     <table cellpadding="0" cellspacing="0" style="margin:8px 0 0;">
@@ -214,12 +272,24 @@ function buildCustomerEmailBody(type: CustomerNotificationType, payload: Custome
   const o = orderRow(order.orderNumber, order.total);
   const track = `${siteUrl()}/track/${order.orderNumber}`;
 
+  // Map notification type to pipeline status key
+  const statusForPipeline: Record<CustomerNotificationType, string> = {
+    'order.pending_payment': 'pending_payment',
+    'order.confirmed': 'confirmed',
+    'order.processing': 'processing',
+    'order.dispatched': 'dispatched',
+    'order.delivered': 'delivered',
+    'order.cancelled': '',
+  };
+  const pipeline = statusForPipeline[type] ? statusPipeline(statusForPipeline[type]) : '';
+
   const bodies: Record<CustomerNotificationType, string> = {
     'order.pending_payment': `
       ${heading('Complete Your Payment')}
       ${g}
       ${paragraph('Your order has been placed. Please complete payment to begin processing.')}
       ${o}
+      ${pipeline}
       ${note(`Send payment via <strong>Zelle</strong>, <strong>Venmo</strong>, or <strong>CashApp</strong> and include <strong style="color:${B.violet};">${order.orderNumber}</strong> in the memo.`)}
       ${paragraph('Once we verify your payment, we\'ll confirm your order and begin processing right away.')}
       ${cta('View Order', track)}
@@ -229,6 +299,7 @@ function buildCustomerEmailBody(type: CustomerNotificationType, payload: Custome
       ${g}
       ${paragraph(`We've received your payment${order.paymentMethod ? ` via <strong>${order.paymentMethod}</strong>` : ''}. Your order is confirmed.`)}
       ${o}
+      ${pipeline}
       ${paragraph('You\'ll receive tracking information once your order ships.')}
       ${cta('Track Order', track)}
     `,
@@ -237,6 +308,7 @@ function buildCustomerEmailBody(type: CustomerNotificationType, payload: Custome
       ${g}
       ${paragraph('Your order is being picked and packed. You\'ll receive tracking details once it ships.')}
       ${o}
+      ${pipeline}
       ${cta('Track Order', track)}
     `,
     'order.dispatched': `
@@ -244,6 +316,7 @@ function buildCustomerEmailBody(type: CustomerNotificationType, payload: Custome
       ${g}
       ${paragraph('Your order is on its way.')}
       ${o}
+      ${pipeline}
       ${extra?.trackingNumber ? `
         <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
           <tr><td style="padding:16px 0;border-top:1px solid ${B.lavender};border-bottom:1px solid ${B.lavender};">
@@ -259,6 +332,7 @@ function buildCustomerEmailBody(type: CustomerNotificationType, payload: Custome
       ${g}
       ${paragraph('Your order has been delivered. We hope everything looks great.')}
       ${o}
+      ${pipeline}
       ${paragraph('Your feedback helps us improve. Consider leaving a review on the product page.')}
       ${cta('Leave a Review', `${siteUrl()}/products`)}
     `,
