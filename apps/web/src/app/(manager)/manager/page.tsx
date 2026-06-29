@@ -19,10 +19,10 @@ import {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const STATUS_TABS = [
-  { key: "pending_payment", label: "Pending", icon: Clock, color: "text-amber-400", bg: "bg-amber-400/10" },
-  { key: "confirmed", label: "Confirmed", icon: CheckCircle, color: "text-green-400", bg: "bg-green-400/10" },
-  { key: "processing", label: "Processing", icon: Package, color: "text-blue-400", bg: "bg-blue-400/10" },
-  { key: "dispatched", label: "Shipped", icon: Truck, color: "text-purple-400", bg: "bg-purple-400/10" },
+  { key: "pending_payment", label: "Pending", icon: Clock, color: "text-amber-600", bg: "bg-amber-50", activeBg: "bg-amber-500" },
+  { key: "confirmed", label: "Confirmed", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", activeBg: "bg-green-500" },
+  { key: "processing", label: "Processing", icon: Package, color: "text-blue-600", bg: "bg-blue-50", activeBg: "bg-blue-500" },
+  { key: "dispatched", label: "Shipped", icon: Truck, color: "text-purple-600", bg: "bg-purple-50", activeBg: "bg-purple-500" },
 ] as const;
 
 interface Order {
@@ -98,7 +98,6 @@ export default function ManagerPage() {
     }
   }, [isSignedIn, tab, loadOrders, loadCounts]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     if (!isSignedIn) return;
     const interval = setInterval(() => {
@@ -122,8 +121,8 @@ export default function ManagerPage() {
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#7371FC]/10">
           <AlertCircle className="h-8 w-8 text-[#7371FC]" />
         </div>
-        <p className="mt-4 text-lg font-bold text-white">Sign in required</p>
-        <p className="mt-1 text-sm text-white/50">You need a staff account to access the manager portal.</p>
+        <p className="mt-4 text-lg font-bold text-[#010128]">Sign in required</p>
+        <p className="mt-1 text-sm text-gray-500">You need a staff account to access the manager portal.</p>
         <button
           onClick={() => router.push("/sign-in?redirect_url=/manager")}
           className="mt-6 rounded-xl bg-[#7371FC] px-8 py-3 text-sm font-semibold text-white active:scale-[0.97]"
@@ -134,7 +133,6 @@ export default function ManagerPage() {
     );
   }
 
-  // Filter orders by search
   const filtered = search.trim()
     ? orders.filter((o) => {
         const q = search.toLowerCase();
@@ -157,29 +155,29 @@ export default function ManagerPage() {
       {totalPendingCount > 0 && tab !== "pending_payment" && (
         <button
           onClick={() => setTab("pending_payment")}
-          className="mx-3 mt-3 flex items-center gap-3 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-left"
+          className="mx-3 mt-3 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left w-[calc(100%-1.5rem)]"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/20">
-            <DollarSign className="h-4 w-4 text-amber-400" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
+            <DollarSign className="h-4 w-4 text-amber-600" />
           </div>
           <div className="flex-1">
-            <p className="text-xs font-bold text-amber-400">{totalPendingCount} order{totalPendingCount !== 1 ? "s" : ""} awaiting payment</p>
-            <p className="text-[10px] text-amber-400/60">Tap to review</p>
+            <p className="text-xs font-bold text-amber-700">{totalPendingCount} order{totalPendingCount !== 1 ? "s" : ""} awaiting payment</p>
+            <p className="text-[10px] text-amber-500">Tap to review</p>
           </div>
-          <ChevronRight className="h-4 w-4 text-amber-400/40" />
+          <ChevronRight className="h-4 w-4 text-amber-400" />
         </button>
       )}
 
       {/* Search bar */}
       <div className="px-3 pt-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search orders..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#7371FC]/50"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm text-[#010128] placeholder:text-gray-400 outline-none focus:border-[#7371FC] focus:ring-2 focus:ring-[#7371FC]/10"
           />
         </div>
       </div>
@@ -196,8 +194,8 @@ export default function ManagerPage() {
               onClick={() => setTab(t.key)}
               className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
                 active
-                  ? "bg-[#7371FC] text-white shadow-lg shadow-[#7371FC]/20"
-                  : "bg-white/6 text-white/50 hover:bg-white/10"
+                  ? "bg-[#7371FC] text-white shadow-sm shadow-[#7371FC]/20"
+                  : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300"
               }`}
             >
               <Icon className={`h-3.5 w-3.5 ${active ? "text-white" : t.color}`} />
@@ -214,7 +212,7 @@ export default function ManagerPage() {
         })}
         <button
           onClick={() => { loadOrders(tab, false); loadCounts(); }}
-          className="ml-auto shrink-0 rounded-xl bg-white/6 p-2.5 text-white/40 hover:text-white/70 active:scale-95"
+          className="ml-auto shrink-0 rounded-xl border border-gray-200 bg-white p-2.5 text-gray-400 hover:text-[#7371FC] active:scale-95"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
         </button>
@@ -227,24 +225,21 @@ export default function ManagerPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5">
-            <Package className="h-8 w-8 text-white/15" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+            <Package className="h-8 w-8 text-gray-300" />
           </div>
-          <p className="mt-4 text-sm font-medium text-white/40">
+          <p className="mt-4 text-sm font-medium text-gray-400">
             {search ? "No orders match your search" : "No orders in this tab"}
           </p>
           {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="mt-2 text-xs text-[#7371FC] hover:underline"
-            >
+            <button onClick={() => setSearch("")} className="mt-2 text-xs text-[#7371FC] hover:underline">
               Clear search
             </button>
           )}
         </div>
       ) : (
         <div className="mt-2 space-y-2 px-3">
-          <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-white/25">
+          <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-300">
             {filtered.length} order{filtered.length !== 1 ? "s" : ""}
           </p>
           {filtered.map((order) => {
@@ -254,35 +249,32 @@ export default function ManagerPage() {
             const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
             const firstProduct = order.items[0]?.productName || "Unknown";
             const age = getAge(order.createdAt);
+            const tabConfig = STATUS_TABS.find((t) => t.key === order.status);
 
             return (
               <button
                 key={order.id}
                 onClick={() => router.push(`/manager/${order.id}`)}
-                className="group flex w-full items-center gap-3 rounded-2xl bg-white/[0.04] p-4 text-left transition-all active:scale-[0.98] hover:bg-white/[0.08] border border-white/[0.06]"
+                className="group flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm border border-gray-100 transition-all active:scale-[0.98] hover:shadow-md hover:border-[#7371FC]/20"
               >
-                {/* Status indicator */}
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                  STATUS_TABS.find((t) => t.key === order.status)?.bg || "bg-white/10"
-                }`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tabConfig?.bg || "bg-gray-100"}`}>
                   {(() => {
-                    const StatusIcon = STATUS_TABS.find((t) => t.key === order.status)?.icon || Package;
-                    const color = STATUS_TABS.find((t) => t.key === order.status)?.color || "text-white/50";
-                    return <StatusIcon className={`h-4.5 w-4.5 ${color}`} />;
+                    const StatusIcon = tabConfig?.icon || Package;
+                    return <StatusIcon className={`h-4 w-4 ${tabConfig?.color || "text-gray-500"}`} />;
                   })()}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-bold text-white">{order.orderNumber}</span>
+                    <span className="font-mono text-sm font-bold text-[#010128]">{order.orderNumber}</span>
                     {order.status === "pending_payment" && order.paymentStatus !== "paid" && (
-                      <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
+                      <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 border border-amber-200">
                         UNPAID
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-white/50 truncate">{customerName}</p>
-                  <div className="mt-1 flex items-center gap-2 text-[11px] text-white/25">
+                  <p className="mt-0.5 text-xs text-gray-500 truncate">{customerName}</p>
+                  <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-400">
                     <span className="truncate max-w-[120px]">{firstProduct}{itemCount > 1 ? ` +${itemCount - 1}` : ""}</span>
                     <span className="shrink-0">&#183;</span>
                     <span className="shrink-0">{age}</span>
@@ -290,11 +282,11 @@ export default function ManagerPage() {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-bold text-[#A594F9]">
+                  <p className="text-sm font-bold text-[#7371FC]">
                     ${Number(order.totalAmount).toFixed(2)}
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-white/15 group-hover:text-white/30 transition-colors" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-gray-300 group-hover:text-[#7371FC] transition-colors" />
               </button>
             );
           })}

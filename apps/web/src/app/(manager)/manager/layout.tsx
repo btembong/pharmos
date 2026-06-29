@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   manifest: "/manager-manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Pharmos Manager",
   },
 };
@@ -27,7 +27,7 @@ export default function ManagerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#010128]">
+    <div className="min-h-screen bg-gray-50">
       <ManagerHeader />
       <main className="mx-auto max-w-lg pb-20">{children}</main>
       <ManagerBottomNav />
