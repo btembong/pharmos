@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ClipboardList, LayoutDashboard, Settings } from "lucide-react";
+import { Home, ClipboardList, Settings } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/manager", label: "Orders", icon: ClipboardList, exact: true },
-  { href: "/manager/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/manager", label: "Home", icon: Home, exact: true },
+  { href: "/manager/orders", label: "Orders", icon: ClipboardList },
   { href: "/manager/settings", label: "Settings", icon: Settings },
 ];
 
