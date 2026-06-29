@@ -654,10 +654,10 @@ export default function AdminProductsPage() {
                           <DropdownMenuItem onClick={() => openPairings(product)}>
                             <Link2 className="mr-2 h-3.5 w-3.5" /> Bought Together
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/products/${product.slug}`} target="_blank">
-                              <ExternalLink className="mr-2 h-3.5 w-3.5" /> View on Store
-                            </Link>
+                          <DropdownMenuItem
+                            render={<Link href={`/products/${product.slug}`} target="_blank" />}
+                          >
+                            <ExternalLink className="mr-2 h-3.5 w-3.5" /> View on Store
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(product)}
@@ -767,10 +767,10 @@ export default function AdminProductsPage() {
                       <DropdownMenuItem onClick={() => openPairings(product)}>
                         <Link2 className="mr-2 h-3.5 w-3.5" /> Bought Together
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/products/${product.slug}`} target="_blank">
-                          <ExternalLink className="mr-2 h-3.5 w-3.5" /> View on Store
-                        </Link>
+                      <DropdownMenuItem
+                        render={<Link href={`/products/${product.slug}`} target="_blank" />}
+                      >
+                        <ExternalLink className="mr-2 h-3.5 w-3.5" /> View on Store
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(product)}

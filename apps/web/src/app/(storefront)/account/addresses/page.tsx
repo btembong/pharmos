@@ -207,11 +207,11 @@ export default function AccountAddressesPage() {
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openAdd}>
-              <Plus className="mr-1.5 h-4 w-4" />
-              Add Address
-            </Button>
+          <DialogTrigger
+            render={<Button onClick={openAdd} />}
+          >
+            <Plus className="mr-1.5 h-4 w-4" />
+            Add Address
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>

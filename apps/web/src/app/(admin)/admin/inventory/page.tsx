@@ -200,11 +200,11 @@ export default function AdminInventoryPage() {
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Batch
-            </Button>
+          <DialogTrigger
+            render={<Button className="bg-primary hover:bg-primary/90" />}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Batch
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
