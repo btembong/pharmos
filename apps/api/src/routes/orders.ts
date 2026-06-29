@@ -312,7 +312,7 @@ router.post('/', requireAuth, validate(createOrderSchema), async (req, res) => {
       afterState: { orderNumber: order.orderNumber, total: order.totalAmount },
     });
 
-    // Send pending payment notification
+    // Send pending payment notification with full order details
     const contactEmail = customerEmail;
     const contactName = shippingAddress
       ? `${shippingAddress.firstName} ${shippingAddress.lastName}`
@@ -320,7 +320,29 @@ router.post('/', requireAuth, validate(createOrderSchema), async (req, res) => {
     if (contactEmail) {
       notificationService.send('order.pending_payment', {
         customer: { email: contactEmail, phone: customerPhone, name: contactName },
-        order: { orderNumber: order.orderNumber, total: Number(order.totalAmount) },
+        order: {
+          orderNumber: order.orderNumber,
+          total: Number(order.totalAmount),
+          subtotal: Number(orderData.subtotal || order.totalAmount),
+          deliveryFee: Number(orderData.deliveryFee || 0),
+          taxAmount: Number(orderData.taxAmount || 0),
+          deliveryMethod: orderData.deliveryMethod,
+          orderDate: new Date().toISOString(),
+          items: items.map((i) => ({
+            productName: i.productName,
+            quantity: i.quantity,
+            unitPrice: Number(i.unitPrice),
+            totalPrice: Number(i.totalPrice),
+          })),
+          deliveryAddress: shippingAddress ? {
+            recipientName: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
+            addressLine1: shippingAddress.addressLine1,
+            addressLine2: shippingAddress.addressLine2,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            zipCode: shippingAddress.zipCode,
+          } : null,
+        },
       }).catch((err) => console.error('[notification] order.pending_payment failed:', err));
     }
 

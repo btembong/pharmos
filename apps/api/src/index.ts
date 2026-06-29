@@ -49,20 +49,44 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhooksRoutes);
 
 // Test email endpoint (dev only)
-app.get('/api/test-email', async (_req, res) => {
+// Usage: /api/test-email?status=confirmed  (pending_payment|confirmed|processing|dispatched|delivered|cancelled)
+app.get('/api/test-email', async (req, res) => {
   try {
-    await notificationService.send('order.pending_payment', {
+    const status = (req.query.status as string) || 'confirmed';
+    const validStatuses = ['pending_payment', 'confirmed', 'processing', 'dispatched', 'delivered', 'cancelled'] as const;
+    const type = `order.${validStatuses.includes(status as any) ? status : 'confirmed'}` as any;
+
+    await notificationService.send(type, {
       customer: {
         email: 'ndanwemarcel@gmail.com',
         name: 'Marcel',
         phone: null,
       },
       order: {
-        orderNumber: 'PF-2026-000001',
-        total: 149.99,
+        orderNumber: 'PF-2026-000047',
+        total: 89.99,
+        paymentMethod: 'zelle',
+        subtotal: 79.98,
+        deliveryFee: 5.99,
+        taxAmount: 4.02,
+        deliveryMethod: 'standard',
+        orderDate: new Date().toISOString(),
+        items: [
+          { productName: 'BPC-157 (5mg)', quantity: 2, unitPrice: 29.99, totalPrice: 59.98 },
+          { productName: 'NAD+ Nasal Spray (30ml)', quantity: 1, unitPrice: 20.00, totalPrice: 20.00 },
+        ],
+        deliveryAddress: {
+          recipientName: 'Marcel Ndanwe',
+          addressLine1: '1234 Research Blvd',
+          addressLine2: 'Suite 100',
+          city: 'Houston',
+          state: 'TX',
+          zipCode: '77001',
+        },
       },
+      extra: status === 'dispatched' ? { trackingNumber: '1Z999AA10123456784', courierName: 'UPS' } : undefined,
     });
-    res.json({ data: { message: 'Test email sent to ndanwemarcel@gmail.com' } });
+    res.json({ data: { message: `Test email (${type}) sent to ndanwemarcel@gmail.com` } });
   } catch (error) {
     console.error('Test email error:', error);
     res.status(500).json({ error: (error as Error).message });

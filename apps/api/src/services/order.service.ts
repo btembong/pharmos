@@ -184,13 +184,35 @@ export async function updateOrderStatus(
   if (notificationType) {
     const fullOrder = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
-      with: { customer: true },
+      with: { customer: true, items: true, deliveryAddress: true },
     });
     if (fullOrder?.customer?.email) {
       const customerName = [fullOrder.customer.firstName, fullOrder.customer.lastName].filter(Boolean).join(' ') || fullOrder.customer.email;
       notificationService.send(notificationType, {
         customer: { email: fullOrder.customer.email, phone: fullOrder.customer.phone, name: customerName },
-        order: { orderNumber: fullOrder.orderNumber, total: Number(fullOrder.totalAmount) },
+        order: {
+          orderNumber: fullOrder.orderNumber,
+          total: Number(fullOrder.totalAmount),
+          subtotal: Number(fullOrder.subtotal),
+          deliveryFee: Number(fullOrder.deliveryFee),
+          taxAmount: Number(fullOrder.taxAmount),
+          deliveryMethod: fullOrder.deliveryMethod,
+          orderDate: fullOrder.createdAt?.toISOString(),
+          items: fullOrder.items?.map((i) => ({
+            productName: i.productName,
+            quantity: i.quantity,
+            unitPrice: Number(i.unitPrice),
+            totalPrice: Number(i.totalPrice),
+          })),
+          deliveryAddress: fullOrder.deliveryAddress ? {
+            recipientName: fullOrder.deliveryAddress.recipientName ?? undefined,
+            addressLine1: fullOrder.deliveryAddress.addressLine1,
+            addressLine2: fullOrder.deliveryAddress.addressLine2,
+            city: fullOrder.deliveryAddress.city,
+            state: fullOrder.deliveryAddress.state,
+            zipCode: fullOrder.deliveryAddress.zipCode,
+          } : null,
+        },
         extra: extra?.trackingNumber ? { trackingNumber: extra.trackingNumber, courierName: extra.courierName ?? '' } : undefined,
       }).catch((err) => console.error(`[notification] ${newStatus} failed:`, err));
     }
@@ -249,12 +271,39 @@ export async function confirmPayment(
     actorId: confirmedBy,
   });
 
-  // Send notifications
-  if (order.customer?.email) {
-    const customerName = [order.customer.firstName, order.customer.lastName].filter(Boolean).join(' ') || order.customer.email;
+  // Send notifications with full order details
+  const fullOrder = await db.query.orders.findFirst({
+    where: eq(orders.id, orderId),
+    with: { customer: true, items: true, deliveryAddress: true },
+  });
+  if (fullOrder?.customer?.email) {
+    const customerName = [fullOrder.customer.firstName, fullOrder.customer.lastName].filter(Boolean).join(' ') || fullOrder.customer.email;
     notificationService.send('order.confirmed', {
-      customer: { email: order.customer.email, phone: order.customer.phone, name: customerName },
-      order: { orderNumber: order.orderNumber, total: Number(order.totalAmount), paymentMethod },
+      customer: { email: fullOrder.customer.email, phone: fullOrder.customer.phone, name: customerName },
+      order: {
+        orderNumber: fullOrder.orderNumber,
+        total: Number(fullOrder.totalAmount),
+        paymentMethod,
+        subtotal: Number(fullOrder.subtotal),
+        deliveryFee: Number(fullOrder.deliveryFee),
+        taxAmount: Number(fullOrder.taxAmount),
+        deliveryMethod: fullOrder.deliveryMethod,
+        orderDate: fullOrder.createdAt?.toISOString(),
+        items: fullOrder.items?.map((i) => ({
+          productName: i.productName,
+          quantity: i.quantity,
+          unitPrice: Number(i.unitPrice),
+          totalPrice: Number(i.totalPrice),
+        })),
+        deliveryAddress: fullOrder.deliveryAddress ? {
+          recipientName: fullOrder.deliveryAddress.recipientName ?? undefined,
+          addressLine1: fullOrder.deliveryAddress.addressLine1,
+          addressLine2: fullOrder.deliveryAddress.addressLine2,
+          city: fullOrder.deliveryAddress.city,
+          state: fullOrder.deliveryAddress.state,
+          zipCode: fullOrder.deliveryAddress.zipCode,
+        } : null,
+      },
     }).catch((err) => console.error('[notification] order.confirmed failed:', err));
   }
 

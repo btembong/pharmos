@@ -17,10 +17,33 @@ interface CustomerContact {
   name: string;
 }
 
+interface OrderItem {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+interface OrderAddress {
+  recipientName?: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
 interface OrderPayload {
   orderNumber: string;
   total: number;
   paymentMethod?: string;
+  subtotal?: number;
+  deliveryFee?: number;
+  taxAmount?: number;
+  items?: OrderItem[];
+  deliveryAddress?: OrderAddress | null;
+  orderDate?: string;
+  deliveryMethod?: string | null;
 }
 
 type CustomerNotificationType =
@@ -185,6 +208,78 @@ function dangerNote(text: string): string {
   return `<p style="margin:0 0 24px;font-size:15px;color:${B.danger};line-height:1.7;padding:16px 0;border-top:1px solid ${B.lavender};border-bottom:1px solid ${B.lavender};">${text}</p>`;
 }
 
+function orderDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const formatted = d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
+      <tr><td style="font-size:12px;color:${B.muted};">Placed on <strong style="color:${B.sub};">${formatted}</strong></td></tr>
+    </table>`;
+}
+
+function itemsTable(items?: OrderItem[]): string {
+  if (!items || items.length === 0) return '';
+  const rows = items.map((item) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid ${B.lavender};font-size:14px;color:${B.text};">
+        ${item.productName}
+        <span style="color:${B.muted};font-size:12px;"> &times; ${item.quantity}</span>
+      </td>
+      <td align="right" style="padding:10px 0;border-bottom:1px solid ${B.lavender};font-size:14px;font-weight:600;color:${B.text};white-space:nowrap;">
+        $${item.totalPrice.toFixed(2)}
+      </td>
+    </tr>`).join('');
+
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
+      <tr>
+        <td style="padding:8px 0;border-bottom:2px solid ${B.indigo};font-size:11px;color:${B.muted};text-transform:uppercase;letter-spacing:1px;">Item</td>
+        <td align="right" style="padding:8px 0;border-bottom:2px solid ${B.indigo};font-size:11px;color:${B.muted};text-transform:uppercase;letter-spacing:1px;">Price</td>
+      </tr>
+      ${rows}
+    </table>`;
+}
+
+function priceBreakdown(order: OrderPayload): string {
+  if (order.subtotal == null) return '';
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 24px;">
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:${B.muted};">Subtotal</td>
+        <td align="right" style="padding:6px 0;font-size:13px;color:${B.sub};">$${order.subtotal.toFixed(2)}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:${B.muted};">Shipping${order.deliveryMethod ? ` (${order.deliveryMethod})` : ''}</td>
+        <td align="right" style="padding:6px 0;font-size:13px;color:${B.sub};">${(order.deliveryFee ?? 0) === 0 ? '<span style="color:' + B.violet + ';font-weight:600;">FREE</span>' : '$' + (order.deliveryFee ?? 0).toFixed(2)}</td>
+      </tr>
+      ${(order.taxAmount ?? 0) > 0 ? `
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:${B.muted};">Tax</td>
+        <td align="right" style="padding:6px 0;font-size:13px;color:${B.sub};">$${(order.taxAmount ?? 0).toFixed(2)}</td>
+      </tr>` : ''}
+      <tr>
+        <td style="padding:10px 0;border-top:2px solid ${B.indigo};font-size:15px;font-weight:700;color:${B.text};">Total</td>
+        <td align="right" style="padding:10px 0;border-top:2px solid ${B.indigo};font-size:15px;font-weight:700;color:${B.violet};">$${order.total.toFixed(2)}</td>
+      </tr>
+    </table>`;
+}
+
+function addressBlock(addr?: OrderAddress | null): string {
+  if (!addr) return '';
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td style="padding:16px;background:${B.pale};border-radius:8px;">
+        <p style="margin:0 0 4px;font-size:11px;color:${B.muted};text-transform:uppercase;letter-spacing:1.5px;">Shipping To</p>
+        ${addr.recipientName ? `<p style="margin:0 0 2px;font-size:14px;font-weight:600;color:${B.text};">${addr.recipientName}</p>` : ''}
+        <p style="margin:0;font-size:13px;color:${B.sub};line-height:1.6;">
+          ${addr.addressLine1}${addr.addressLine2 ? `<br/>${addr.addressLine2}` : ''}<br/>
+          ${addr.city}, ${addr.state} ${addr.zipCode}
+        </p>
+      </td></tr>
+    </table>`;
+}
+
 // ─── Order Status Pipeline ──────────────────────────────────────────────────
 
 const PIPELINE_STEPS = [
@@ -283,65 +378,94 @@ function buildCustomerEmailBody(type: CustomerNotificationType, payload: Custome
   };
   const pipeline = statusForPipeline[type] ? statusPipeline(statusForPipeline[type]) : '';
 
+  // Rich detail blocks (only render if data is provided)
+  const date = orderDate(order.orderDate);
+  const items = itemsTable(order.items);
+  const breakdown = priceBreakdown(order);
+  const addr = addressBlock(order.deliveryAddress);
+
   const bodies: Record<CustomerNotificationType, string> = {
     'order.pending_payment': `
       ${heading('Complete Your Payment')}
       ${g}
-      ${paragraph('Your order has been placed. Please complete payment to begin processing.')}
+      ${paragraph('Your order has been placed successfully! Please complete payment to begin processing.')}
       ${o}
+      ${date}
       ${pipeline}
       ${note(`Send payment via <strong>Zelle</strong>, <strong>Venmo</strong>, or <strong>CashApp</strong> and include <strong style="color:${B.violet};">${order.orderNumber}</strong> in the memo.`)}
+      ${items}
+      ${breakdown}
+      ${addr}
       ${paragraph('Once we verify your payment, we\'ll confirm your order and begin processing right away.')}
-      ${cta('View Order', track)}
+      ${cta('View Order & Pay', track)}
     `,
     'order.confirmed': `
       ${heading('Payment Confirmed')}
       ${g}
-      ${paragraph(`We've received your payment${order.paymentMethod ? ` via <strong>${order.paymentMethod}</strong>` : ''}. Your order is confirmed.`)}
+      ${paragraph(`Great news! We've received your payment${order.paymentMethod ? ` via <strong>${order.paymentMethod.replace('_', ' ')}</strong>` : ''}. Your order is confirmed and will be processed shortly.`)}
       ${o}
+      ${date}
       ${pipeline}
-      ${paragraph('You\'ll receive tracking information once your order ships.')}
+      ${items}
+      ${breakdown}
+      ${addr}
+      ${paragraph('We\'ll notify you with tracking information once your order ships.')}
       ${cta('Track Order', track)}
     `,
     'order.processing': `
-      ${heading('Order Being Prepared')}
+      ${heading('Your Order Is Being Prepared')}
       ${g}
-      ${paragraph('Your order is being picked and packed. You\'ll receive tracking details once it ships.')}
+      ${paragraph('Your order is now being picked and carefully packed by our team.')}
       ${o}
+      ${date}
       ${pipeline}
+      ${items}
+      ${breakdown}
+      ${addr}
+      ${paragraph('You\'ll receive an email with tracking details as soon as it ships.')}
       ${cta('Track Order', track)}
     `,
     'order.dispatched': `
-      ${heading('Your Order Has Shipped')}
+      ${heading('Your Order Has Shipped!')}
       ${g}
-      ${paragraph('Your order is on its way.')}
+      ${paragraph('Your order is on its way to you.')}
       ${o}
+      ${date}
       ${pipeline}
       ${extra?.trackingNumber ? `
         <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-          <tr><td style="padding:16px 0;border-top:1px solid ${B.lavender};border-bottom:1px solid ${B.lavender};">
-            <p style="margin:0;font-size:11px;color:${B.muted};text-transform:uppercase;letter-spacing:1.5px;">Tracking Number</p>
-            <p style="margin:6px 0 0;font-size:17px;font-weight:600;color:${B.violet};font-family:'Courier New',monospace;">${extra.trackingNumber}</p>
-            ${extra.courierName ? `<p style="margin:4px 0 0;font-size:13px;color:${B.sub};">via ${extra.courierName}</p>` : ''}
+          <tr><td style="padding:20px;background:${B.pale};border-radius:8px;">
+            <p style="margin:0 0 4px;font-size:11px;color:${B.muted};text-transform:uppercase;letter-spacing:1.5px;">Tracking Number</p>
+            <p style="margin:0 0 4px;font-size:18px;font-weight:700;color:${B.violet};font-family:'Courier New',monospace;">${extra.trackingNumber}</p>
+            ${extra.courierName ? `<p style="margin:0;font-size:13px;color:${B.sub};">Shipped via <strong>${extra.courierName}</strong></p>` : ''}
           </td></tr>
         </table>` : ''}
+      ${items}
+      ${breakdown}
+      ${addr}
       ${cta('Track Shipment', track)}
     `,
     'order.delivered': `
-      ${heading('Order Delivered')}
+      ${heading('Your Order Has Been Delivered!')}
       ${g}
-      ${paragraph('Your order has been delivered. We hope everything looks great.')}
+      ${paragraph('Your order has been delivered. We hope everything is exactly what you expected!')}
       ${o}
+      ${date}
       ${pipeline}
-      ${paragraph('Your feedback helps us improve. Consider leaving a review on the product page.')}
+      ${items}
+      ${breakdown}
+      ${paragraph('Your feedback helps us improve. If you have a moment, we\'d love to hear from you.')}
       ${cta('Leave a Review', `${siteUrl()}/products`)}
     `,
     'order.cancelled': `
       ${heading('Order Cancelled')}
       ${g}
-      ${paragraph('Your order has been cancelled.')}
+      ${paragraph('Your order has been cancelled. If a payment was made, a refund will be processed within 3-5 business days.')}
       ${o}
-      ${dangerNote(`If this was unexpected, contact us at <a href="mailto:support@pharmos.com" style="color:${B.violet};font-weight:600;">support@pharmos.com</a>.`)}
+      ${date}
+      ${items}
+      ${breakdown}
+      ${dangerNote(`If this cancellation was unexpected, please contact us at <a href="mailto:support@pharmos.com" style="color:${B.violet};font-weight:600;">support@pharmos.com</a> and we'll help resolve it.`)}
       ${cta('Browse Products', `${siteUrl()}/products`)}
     `,
   };
