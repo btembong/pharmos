@@ -7,6 +7,6 @@ services:
     startCommand: cd apps/api && npx tsx src/index.ts
     envVars:
       - key: NODE_VERSION
-        value: 20.18.0
+        value: 22.16.0
       - key: NODE_ENV
         value: production
