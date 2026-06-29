@@ -26,13 +26,13 @@ import { toast } from "sonner";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const STATUS_FLOW = [
-  { key: "pending_payment", label: "Pending Payment", icon: Clock, color: "text-amber-600" },
-  { key: "confirmed", label: "Confirmed", icon: CheckCircle, color: "text-green-600" },
-  { key: "processing", label: "Processing", icon: Package, color: "text-blue-600" },
-  { key: "packed", label: "Packed", icon: Box, color: "text-indigo-600" },
-  { key: "dispatched", label: "Dispatched", icon: Truck, color: "text-purple-600" },
-  { key: "out_for_delivery", label: "Out for Delivery", icon: Truck, color: "text-violet-600" },
-  { key: "delivered", label: "Delivered", icon: CheckCircle, color: "text-emerald-600" },
+  { key: "pending_payment", label: "Pending Payment" },
+  { key: "confirmed", label: "Confirmed" },
+  { key: "processing", label: "Processing" },
+  { key: "packed", label: "Packed" },
+  { key: "dispatched", label: "Dispatched" },
+  { key: "out_for_delivery", label: "Out for Delivery" },
+  { key: "delivered", label: "Delivered" },
 ];
 
 const PAYMENT_METHODS = ["zelle", "venmo", "cashapp", "wire_transfer", "check", "cash"] as const;
@@ -147,24 +147,20 @@ export default function ManagerOrderDetailPage() {
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body),
       });
-      if (res.ok) { toast.success(`Status updated`); setShowStatusUpdate(false); loadOrder(); }
+      if (res.ok) { toast.success("Status updated"); setShowStatusUpdate(false); loadOrder(); }
       else { const err = await res.json().catch(() => ({})); toast.error(err.error || "Failed to update"); }
     } catch { toast.error("Network error"); }
     finally { setUpdatingStatus(false); }
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#7371FC]" />
-      </div>
-    );
+    return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#7371FC]" /></div>;
   }
 
   if (!order) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        <p className="text-gray-500">Order not found</p>
+        <p className="text-[#010128]/40">Order not found</p>
         <button onClick={() => router.back()} className="mt-4 text-sm text-[#7371FC]">Go back</button>
       </div>
     );
@@ -180,19 +176,19 @@ export default function ManagerOrderDetailPage() {
     <div className="pb-8">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4">
-        <button onClick={() => router.back()} className="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-500 hover:text-[#010128] active:scale-95 shadow-sm">
+        <button onClick={() => router.back()} className="rounded-xl border border-[#010128]/10 bg-white p-2.5 text-[#010128]/40 hover:text-[#010128] active:scale-95">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1">
           <h1 className="font-mono text-lg font-bold text-[#010128]">{order.orderNumber}</h1>
-          <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleString()}</p>
+          <p className="text-xs text-[#010128]/35">{new Date(order.createdAt).toLocaleString()}</p>
         </div>
         <div className="text-right">
           <p className="text-lg font-bold text-[#7371FC]">${Number(order.totalAmount).toFixed(2)}</p>
           <span className={`inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
             order.paymentStatus === "paid"
-              ? "bg-green-50 text-green-600 border border-green-200"
-              : "bg-amber-50 text-amber-600 border border-amber-200"
+              ? "bg-[#7371FC]/10 text-[#7371FC] border border-[#7371FC]/20"
+              : "bg-[#010128]/5 text-[#010128]/50 border border-[#010128]/10"
           }`}>
             {order.paymentStatus === "paid" ? "PAID" : "UNPAID"}
           </span>
@@ -210,18 +206,18 @@ export default function ManagerOrderDetailPage() {
               <div key={step.key} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   {isCompleted ? (
-                    <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
+                    <CheckCircle className="h-5 w-5 shrink-0 text-[#7371FC]" />
                   ) : isCurrent ? (
-                    <CircleDot className={`h-5 w-5 shrink-0 ${step.color}`} />
+                    <CircleDot className="h-5 w-5 shrink-0 text-[#7371FC]" />
                   ) : (
-                    <Circle className="h-5 w-5 shrink-0 text-gray-200" />
+                    <Circle className="h-5 w-5 shrink-0 text-[#010128]/10" />
                   )}
                   {i < STATUS_FLOW.length - 1 && (
-                    <div className={`w-px flex-1 min-h-[20px] ${isCompleted ? "bg-green-300" : "bg-gray-200"}`} />
+                    <div className={`w-px flex-1 min-h-[20px] ${isCompleted ? "bg-[#7371FC]/30" : "bg-[#010128]/10"}`} />
                   )}
                 </div>
-                <div className={`pb-4 ${isFuture ? "opacity-30" : ""}`}>
-                  <p className={`text-sm font-medium ${isCurrent ? "text-[#010128]" : isCompleted ? "text-gray-500" : "text-gray-300"}`}>
+                <div className={`pb-4 ${isFuture ? "opacity-25" : ""}`}>
+                  <p className={`text-sm font-medium ${isCurrent ? "text-[#010128]" : isCompleted ? "text-[#010128]/50" : "text-[#010128]/25"}`}>
                     {step.label}
                   </p>
                 </div>
@@ -234,21 +230,15 @@ export default function ManagerOrderDetailPage() {
       {/* Quick actions */}
       <div className="mx-4 mt-3 flex gap-2">
         {order.status === "pending_payment" && (
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#7371FC] py-3.5 text-sm font-semibold text-white shadow-md shadow-[#7371FC]/20 active:scale-[0.97]"
-          >
-            <CreditCard className="h-4 w-4" />
-            Confirm Payment
+          <button onClick={() => setShowConfirm(true)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#7371FC] py-3.5 text-sm font-semibold text-white shadow-md shadow-[#7371FC]/20 active:scale-[0.97]">
+            <CreditCard className="h-4 w-4" /> Confirm Payment
           </button>
         )}
         {nextStatuses.length > 0 && order.status !== "pending_payment" && (
-          <button
-            onClick={() => { setNewStatus(nextStatuses[0].key); setShowStatusUpdate(true); }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#7371FC] bg-[#7371FC]/5 py-3.5 text-sm font-semibold text-[#7371FC] active:scale-[0.97]"
-          >
-            <Truck className="h-4 w-4" />
-            Update Status
+          <button onClick={() => { setNewStatus(nextStatuses[0].key); setShowStatusUpdate(true); }}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#7371FC] bg-[#7371FC]/5 py-3.5 text-sm font-semibold text-[#7371FC] active:scale-[0.97]">
+            <Truck className="h-4 w-4" /> Update Status
           </button>
         )}
       </div>
@@ -267,16 +257,16 @@ export default function ManagerOrderDetailPage() {
       <Section title="Customer" icon={User}>
         <div className="space-y-2.5">
           <div className="flex items-center gap-2.5 text-sm text-[#010128]">
-            <User className="h-4 w-4 text-gray-300" /> {customerName}
+            <User className="h-4 w-4 text-[#010128]/20" /> {customerName}
           </div>
           {order.customer?.email && (
             <a href={`mailto:${order.customer.email}`} className="flex items-center gap-2.5 text-sm text-[#7371FC]">
-              <Mail className="h-4 w-4 text-gray-300" /> {order.customer.email}
+              <Mail className="h-4 w-4 text-[#010128]/20" /> {order.customer.email}
             </a>
           )}
           {order.customer?.phone && (
             <a href={`tel:${order.customer.phone}`} className="flex items-center gap-2.5 text-sm text-[#7371FC]">
-              <Phone className="h-4 w-4 text-gray-300" /> {order.customer.phone}
+              <Phone className="h-4 w-4 text-[#010128]/20" /> {order.customer.phone}
             </a>
           )}
         </div>
@@ -286,9 +276,9 @@ export default function ManagerOrderDetailPage() {
       {order.deliveryAddress && (
         <Section title="Ship To" icon={MapPin}>
           <p className="text-sm font-medium text-[#010128]">{order.deliveryAddress.recipientName}</p>
-          <p className="mt-1 text-xs text-gray-500">{order.deliveryAddress.addressLine1}</p>
-          {order.deliveryAddress.addressLine2 && <p className="text-xs text-gray-500">{order.deliveryAddress.addressLine2}</p>}
-          <p className="text-xs text-gray-500">{order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.zipCode}</p>
+          <p className="mt-1 text-xs text-[#010128]/45">{order.deliveryAddress.addressLine1}</p>
+          {order.deliveryAddress.addressLine2 && <p className="text-xs text-[#010128]/45">{order.deliveryAddress.addressLine2}</p>}
+          <p className="text-xs text-[#010128]/45">{order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.zipCode}</p>
         </Section>
       )}
 
@@ -299,13 +289,13 @@ export default function ManagerOrderDetailPage() {
             <div key={item.id} className="flex items-start justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-[#010128] truncate">{item.productName}</p>
-                <p className="mt-0.5 text-xs text-gray-400">Qty: {item.quantity} x ${Number(item.unitPrice).toFixed(2)}</p>
+                <p className="mt-0.5 text-xs text-[#010128]/35">Qty: {item.quantity} x ${Number(item.unitPrice).toFixed(2)}</p>
               </div>
               <p className="ml-3 text-sm font-semibold text-[#010128]">${Number(item.totalPrice).toFixed(2)}</p>
             </div>
           ))}
         </div>
-        <div className="mt-4 space-y-1.5 border-t border-gray-100 pt-3">
+        <div className="mt-4 space-y-1.5 border-t border-[#010128]/8 pt-3">
           <SummaryRow label="Subtotal" value={order.subtotal} />
           <SummaryRow label="Shipping" value={order.deliveryFee} />
           <SummaryRow label="Tax" value={order.taxAmount} />
@@ -319,14 +309,14 @@ export default function ManagerOrderDetailPage() {
       {order.trackingNumber && (
         <Section title="Tracking" icon={Truck}>
           <p className="font-mono text-sm text-[#010128]">{order.trackingNumber}</p>
-          {order.courierName && <p className="mt-1 text-xs text-gray-400">via {order.courierName}</p>}
+          {order.courierName && <p className="mt-1 text-xs text-[#010128]/35">via {order.courierName}</p>}
         </Section>
       )}
 
       {/* Notes */}
       {order.notes && (
-        <Section title="Notes" icon={Package}>
-          <p className="text-sm text-gray-600">{order.notes}</p>
+        <Section title="Notes" icon={Box}>
+          <p className="text-sm text-[#010128]/60">{order.notes}</p>
         </Section>
       )}
 
@@ -334,30 +324,28 @@ export default function ManagerOrderDetailPage() {
       {showConfirm && (
         <BottomSheet onClose={() => setShowConfirm(false)}>
           <h3 className="text-lg font-bold text-[#010128]">Confirm Payment</h3>
-          <p className="mt-1 text-xs text-gray-400">
-            Mark <span className="font-mono text-gray-600">{order.orderNumber}</span> as paid and notify the customer.
+          <p className="mt-1 text-xs text-[#010128]/40">
+            Mark <span className="font-mono text-[#010128]/60">{order.orderNumber}</span> as paid.
           </p>
           <div className="mt-3 rounded-xl bg-[#7371FC]/5 border border-[#7371FC]/15 p-3 text-center">
             <p className="text-2xl font-bold text-[#7371FC]">${Number(order.totalAmount).toFixed(2)}</p>
           </div>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-2 block text-xs font-semibold text-gray-500">Payment Method</label>
+              <label className="mb-2 block text-xs font-semibold text-[#010128]/45">Payment Method</label>
               <div className="flex flex-wrap gap-1.5">
                 {PAYMENT_METHODS.map((m) => (
                   <button key={m} onClick={() => setPayMethod(m)}
                     className={`rounded-lg px-3 py-2 text-xs font-medium capitalize transition-colors ${
-                      payMethod === m ? "bg-[#7371FC] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      payMethod === m ? "bg-[#7371FC] text-white" : "bg-[#010128]/5 text-[#010128]/60 hover:bg-[#010128]/10"
                     }`}>{m.replace("_", " ")}</button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-gray-500">Reference / Confirmation ID *</label>
-              <input
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#010128] outline-none focus:border-[#7371FC] focus:ring-2 focus:ring-[#7371FC]/10 placeholder:text-gray-400"
-                placeholder="e.g. Zelle confirmation #..."
-                value={payRef} onChange={(e) => setPayRef(e.target.value)} />
+              <label className="mb-1.5 block text-xs font-semibold text-[#010128]/45">Reference *</label>
+              <input className="w-full rounded-xl border border-[#010128]/10 bg-white px-4 py-3 text-sm text-[#010128] outline-none focus:border-[#7371FC] focus:ring-2 focus:ring-[#7371FC]/10 placeholder:text-[#010128]/25"
+                placeholder="e.g. Zelle confirmation #..." value={payRef} onChange={(e) => setPayRef(e.target.value)} />
             </div>
             <button onClick={confirmPayment} disabled={confirming || !payRef.trim()}
               className="w-full rounded-xl bg-[#7371FC] py-3.5 text-sm font-bold text-white shadow-md shadow-[#7371FC]/20 disabled:opacity-50 active:scale-[0.97]">
@@ -371,17 +359,17 @@ export default function ManagerOrderDetailPage() {
       {showStatusUpdate && (
         <BottomSheet onClose={() => setShowStatusUpdate(false)}>
           <h3 className="text-lg font-bold text-[#010128]">Update Status</h3>
-          <p className="mt-1 text-xs text-gray-400">
-            Move <span className="font-mono text-gray-600">{order.orderNumber}</span> to the next stage.
+          <p className="mt-1 text-xs text-[#010128]/40">
+            Move <span className="font-mono text-[#010128]/60">{order.orderNumber}</span> forward.
           </p>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-2 block text-xs font-semibold text-gray-500">New Status</label>
+              <label className="mb-2 block text-xs font-semibold text-[#010128]/45">New Status</label>
               <div className="flex flex-wrap gap-1.5">
                 {nextStatuses.map((s) => (
                   <button key={s.key} onClick={() => setNewStatus(s.key)}
                     className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                      newStatus === s.key ? "bg-[#7371FC] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      newStatus === s.key ? "bg-[#7371FC] text-white" : "bg-[#010128]/5 text-[#010128]/60 hover:bg-[#010128]/10"
                     }`}>{s.label}</button>
                 ))}
               </div>
@@ -389,17 +377,17 @@ export default function ManagerOrderDetailPage() {
             {(newStatus === "dispatched" || newStatus === "out_for_delivery") && (
               <>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-gray-500">Tracking Number</label>
-                  <input className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#010128] outline-none focus:border-[#7371FC] focus:ring-2 focus:ring-[#7371FC]/10 placeholder:text-gray-400"
+                  <label className="mb-1.5 block text-xs font-semibold text-[#010128]/45">Tracking Number</label>
+                  <input className="w-full rounded-xl border border-[#010128]/10 bg-white px-4 py-3 text-sm text-[#010128] outline-none focus:border-[#7371FC] focus:ring-2 focus:ring-[#7371FC]/10 placeholder:text-[#010128]/25"
                     placeholder="1Z999AA10123456784" value={trackingNum} onChange={(e) => setTrackingNum(e.target.value)} />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-gray-500">Courier</label>
+                  <label className="mb-2 block text-xs font-semibold text-[#010128]/45">Courier</label>
                   <div className="flex gap-1.5">
                     {["USPS", "UPS", "FedEx"].map((c) => (
                       <button key={c} onClick={() => setCourier(c)}
                         className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
-                          courier === c ? "bg-[#7371FC] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          courier === c ? "bg-[#7371FC] text-white" : "bg-[#010128]/5 text-[#010128]/60 hover:bg-[#010128]/10"
                         }`}>{c}</button>
                     ))}
                   </div>
@@ -419,10 +407,10 @@ export default function ManagerOrderDetailPage() {
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="mx-4 mt-3 rounded-2xl bg-white border border-gray-100 p-4 shadow-sm">
+    <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#010128]/5 p-4">
       <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-3.5 w-3.5 text-gray-400" />
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{title}</p>
+        <Icon className="h-3.5 w-3.5 text-[#7371FC]/50" />
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#010128]/30">{title}</p>
       </div>
       {children}
     </div>
@@ -431,7 +419,7 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-xs text-gray-400">
+    <div className="flex justify-between text-xs text-[#010128]/35">
       <span>{label}</span><span>${Number(value).toFixed(2)}</span>
     </div>
   );
@@ -439,10 +427,10 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 
 function BottomSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-t-3xl bg-white border-t border-gray-200 p-6 pb-8 animate-in slide-in-from-bottom duration-300 shadow-2xl"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#010128]/20 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl bg-white border-t border-[#010128]/10 p-6 pb-8 animate-in slide-in-from-bottom duration-300 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-gray-300" />
+        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[#010128]/15" />
         {children}
       </div>
     </div>

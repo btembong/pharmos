@@ -44,6 +44,16 @@ interface RecentOrder {
   items: { id: string; quantity: number; productName: string }[];
 }
 
+const STATUS_MAP: Record<string, { label: string; icon: React.ElementType }> = {
+  pending_payment: { label: "PENDING", icon: Clock },
+  confirmed: { label: "CONFIRMED", icon: CheckCircle },
+  processing: { label: "PROCESSING", icon: Package },
+  packed: { label: "PACKED", icon: Package },
+  dispatched: { label: "SHIPPED", icon: Truck },
+  out_for_delivery: { label: "OUT", icon: Truck },
+  delivered: { label: "DELIVERED", icon: CheckCircle },
+};
+
 export default function ManagerHomePage() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const router = useRouter();
@@ -99,7 +109,6 @@ export default function ManagerHomePage() {
     if (isSignedIn) loadData();
   }, [isSignedIn, loadData]);
 
-  // Auto refresh every 60s
   useEffect(() => {
     if (!isSignedIn) return;
     const interval = setInterval(() => loadData(false), 60000);
@@ -121,7 +130,7 @@ export default function ManagerHomePage() {
           <Package className="h-8 w-8 text-[#7371FC]" />
         </div>
         <p className="mt-4 text-lg font-bold text-[#010128]">Sign in required</p>
-        <p className="mt-1 text-sm text-gray-500">You need a staff account to access the manager portal.</p>
+        <p className="mt-1 text-sm text-[#010128]/50">You need a staff account to access the manager portal.</p>
         <button
           onClick={() => router.push("/sign-in?redirect_url=/manager")}
           className="mt-6 rounded-xl bg-[#7371FC] px-8 py-3 text-sm font-semibold text-white active:scale-[0.97]"
@@ -137,12 +146,12 @@ export default function ManagerHomePage() {
 
   return (
     <div className="px-3 pb-4 pt-4">
-      {/* Refresh */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-bold text-[#010128]">Home</h1>
         <button
           onClick={() => loadData(false)}
-          className="rounded-xl border border-gray-200 bg-white p-2 text-gray-400 hover:text-[#7371FC] active:scale-95"
+          className="rounded-xl border border-[#010128]/10 bg-white p-2 text-[#010128]/30 hover:text-[#7371FC] active:scale-95"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
         </button>
@@ -152,87 +161,59 @@ export default function ManagerHomePage() {
       {pendingCount > 0 && (
         <button
           onClick={() => router.push("/manager/orders?status=pending_payment")}
-          className="mb-4 flex w-full items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-4 text-left"
+          className="mb-4 flex w-full items-center gap-3 rounded-2xl bg-[#7371FC]/5 border border-[#7371FC]/15 px-4 py-4 text-left"
         >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-            <CreditCard className="h-5 w-5 text-amber-600" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#7371FC]/10">
+            <CreditCard className="h-5 w-5 text-[#7371FC]" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-bold text-amber-700">{pendingCount} payment{pendingCount !== 1 ? "s" : ""} to confirm</p>
-            <p className="text-xs text-amber-500">Tap to review pending orders</p>
+            <p className="text-sm font-bold text-[#010128]">{pendingCount} payment{pendingCount !== 1 ? "s" : ""} to confirm</p>
+            <p className="text-xs text-[#010128]/40">Tap to review pending orders</p>
           </div>
-          <ChevronRight className="h-5 w-5 text-amber-400" />
+          <ChevronRight className="h-5 w-5 text-[#7371FC]/40" />
         </button>
       )}
 
       {/* Today's card */}
-      <div className="rounded-2xl bg-gradient-to-br from-[#7371FC] to-[#5855d4] p-5 mb-4 shadow-lg shadow-[#7371FC]/15">
+      <div className="rounded-2xl bg-[#010128] p-5 mb-4 shadow-lg shadow-[#010128]/15">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Today&apos;s Revenue</p>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
-            <TrendingUp className="h-4 w-4 text-white" />
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Today&apos;s Revenue</p>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7371FC]/20">
+            <TrendingUp className="h-4 w-4 text-[#7371FC]" />
           </div>
         </div>
         <p className="mt-2 text-3xl font-bold text-white">${stats?.todayRevenue?.toFixed(2) || "0.00"}</p>
-        <p className="mt-1 text-xs text-white/60">{stats?.todayOrders || 0} order{(stats?.todayOrders || 0) !== 1 ? "s" : ""} placed today</p>
+        <p className="mt-1 text-xs text-white/40">{stats?.todayOrders || 0} order{(stats?.todayOrders || 0) !== 1 ? "s" : ""} placed today</p>
       </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <MiniStat label="Revenue" value={`$${formatCompact(stats?.totalRevenue || 0)}`} icon={DollarSign} color="text-green-600" bg="bg-green-50" />
-        <MiniStat label="Orders" value={String(stats?.totalOrders || 0)} icon={ShoppingCart} color="text-blue-600" bg="bg-blue-50" />
-        <MiniStat label="Active" value={String(activeOrders)} icon={Package} color="text-purple-600" bg="bg-purple-50" />
+        <MiniStat label="Revenue" value={`$${formatCompact(stats?.totalRevenue || 0)}`} icon={DollarSign} />
+        <MiniStat label="Orders" value={String(stats?.totalOrders || 0)} icon={ShoppingCart} />
+        <MiniStat label="Active" value={String(activeOrders)} icon={Package} />
       </div>
 
       {/* Quick actions */}
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Quick Actions</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#010128]/30">Quick Actions</p>
       <div className="grid grid-cols-2 gap-2 mb-5">
-        <QuickAction
-          icon={Clock}
-          label="Pending Orders"
-          count={stats?.pendingPayment || 0}
-          color="text-amber-600"
-          bg="bg-amber-50"
-          onClick={() => router.push("/manager/orders?status=pending_payment")}
-        />
-        <QuickAction
-          icon={CheckCircle}
-          label="Confirmed"
-          count={stats?.confirmed || 0}
-          color="text-green-600"
-          bg="bg-green-50"
-          onClick={() => router.push("/manager/orders?status=confirmed")}
-        />
-        <QuickAction
-          icon={Package}
-          label="Processing"
-          count={stats?.processing || 0}
-          color="text-blue-600"
-          bg="bg-blue-50"
-          onClick={() => router.push("/manager/orders?status=processing")}
-        />
-        <QuickAction
-          icon={Truck}
-          label="Dispatched"
-          count={stats?.dispatched || 0}
-          color="text-purple-600"
-          bg="bg-purple-50"
-          onClick={() => router.push("/manager/orders?status=dispatched")}
-        />
+        <QuickAction icon={Clock} label="Pending Orders" count={stats?.pendingPayment || 0} onClick={() => router.push("/manager/orders?status=pending_payment")} />
+        <QuickAction icon={CheckCircle} label="Confirmed" count={stats?.confirmed || 0} onClick={() => router.push("/manager/orders?status=confirmed")} />
+        <QuickAction icon={Package} label="Processing" count={stats?.processing || 0} onClick={() => router.push("/manager/orders?status=processing")} />
+        <QuickAction icon={Truck} label="Dispatched" count={stats?.dispatched || 0} onClick={() => router.push("/manager/orders?status=dispatched")} />
       </div>
 
       {/* Recent orders */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Recent Orders</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#010128]/30">Recent Orders</p>
         <button onClick={() => router.push("/manager/orders")} className="flex items-center gap-1 text-xs font-semibold text-[#7371FC]">
           View all <ArrowRight className="h-3 w-3" />
         </button>
       </div>
 
       {recentOrders.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-gray-100 p-8 text-center shadow-sm">
-          <Package className="mx-auto h-10 w-10 text-gray-200" />
-          <p className="mt-3 text-sm text-gray-400">No orders yet</p>
+        <div className="rounded-2xl bg-white border border-[#010128]/5 p-8 text-center">
+          <Package className="mx-auto h-10 w-10 text-[#010128]/10" />
+          <p className="mt-3 text-sm text-[#010128]/30">No orders yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -241,28 +222,29 @@ export default function ManagerHomePage() {
               ? [order.customer.firstName, order.customer.lastName].filter(Boolean).join(" ") || order.customer.email
               : "Guest";
             const age = getAge(order.createdAt);
-            const statusConfig = getStatusConfig(order.status);
+            const cfg = STATUS_MAP[order.status] || { label: order.status.toUpperCase(), icon: Package };
+            const StatusIcon = cfg.icon;
 
             return (
               <button
                 key={order.id}
                 onClick={() => router.push(`/manager/${order.id}`)}
-                className="group flex w-full items-center gap-3 rounded-xl bg-white p-3.5 text-left shadow-sm border border-gray-100 transition-all active:scale-[0.98] hover:border-[#7371FC]/20"
+                className="group flex w-full items-center gap-3 rounded-xl bg-white p-3.5 text-left border border-[#010128]/5 transition-all active:scale-[0.98] hover:border-[#7371FC]/20"
               >
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${statusConfig.bg}`}>
-                  <statusConfig.icon className={`h-4 w-4 ${statusConfig.color}`} />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#7371FC]/8">
+                  <StatusIcon className="h-4 w-4 text-[#7371FC]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-bold text-[#010128]">{order.orderNumber}</span>
-                    <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${statusConfig.bg} ${statusConfig.color}`}>
-                      {statusConfig.label}
+                    <span className="rounded px-1.5 py-0.5 text-[9px] font-bold bg-[#7371FC]/8 text-[#7371FC]">
+                      {cfg.label}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[11px] text-gray-400 truncate">{name} &middot; {age}</p>
+                  <p className="mt-0.5 text-[11px] text-[#010128]/40 truncate">{name} &middot; {age}</p>
                 </div>
-                <p className="text-sm font-bold text-[#7371FC]">${Number(order.totalAmount).toFixed(2)}</p>
-                <Eye className="h-4 w-4 shrink-0 text-gray-300 group-hover:text-[#7371FC]" />
+                <p className="text-sm font-bold text-[#010128]">${Number(order.totalAmount).toFixed(2)}</p>
+                <Eye className="h-4 w-4 shrink-0 text-[#010128]/15 group-hover:text-[#7371FC]" />
               </button>
             );
           })}
@@ -272,34 +254,32 @@ export default function ManagerHomePage() {
   );
 }
 
-function MiniStat({ label, value, icon: Icon, color, bg }: {
-  label: string; value: string; icon: React.ElementType; color: string; bg: string;
-}) {
+function MiniStat({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) {
   return (
-    <div className="rounded-xl bg-white border border-gray-100 p-3 shadow-sm text-center">
-      <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg ${bg}`}>
-        <Icon className={`h-3.5 w-3.5 ${color}`} />
+    <div className="rounded-xl bg-white border border-[#010128]/5 p-3 text-center">
+      <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-[#7371FC]/8">
+        <Icon className="h-3.5 w-3.5 text-[#7371FC]" />
       </div>
       <p className="mt-2 text-base font-bold text-[#010128]">{value}</p>
-      <p className="text-[10px] text-gray-400">{label}</p>
+      <p className="text-[10px] text-[#010128]/35">{label}</p>
     </div>
   );
 }
 
-function QuickAction({ icon: Icon, label, count, color, bg, onClick }: {
-  icon: React.ElementType; label: string; count: number; color: string; bg: string; onClick: () => void;
+function QuickAction({ icon: Icon, label, count, onClick }: {
+  icon: React.ElementType; label: string; count: number; onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 rounded-xl bg-white border border-gray-100 p-3.5 text-left shadow-sm transition-all active:scale-[0.97] hover:border-[#7371FC]/20"
+      className="flex items-center gap-3 rounded-xl bg-white border border-[#010128]/5 p-3.5 text-left transition-all active:scale-[0.97] hover:border-[#7371FC]/20"
     >
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-        <Icon className={`h-4.5 w-4.5 ${color}`} />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7371FC]/8">
+        <Icon className="h-4 w-4 text-[#7371FC]" />
       </div>
       <div>
         <p className="text-xs font-semibold text-[#010128]">{label}</p>
-        <p className={`text-lg font-bold ${count > 0 ? color : "text-gray-300"}`}>{count}</p>
+        <p className={`text-lg font-bold ${count > 0 ? "text-[#7371FC]" : "text-[#010128]/20"}`}>{count}</p>
       </div>
     </button>
   );
@@ -310,25 +290,11 @@ function getAge(dateStr: string): string {
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 function formatCompact(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
   return n.toFixed(2);
-}
-
-function getStatusConfig(status: string) {
-  const map: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-    pending_payment: { label: "PENDING", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-    confirmed: { label: "CONFIRMED", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
-    processing: { label: "PROCESSING", icon: Package, color: "text-blue-600", bg: "bg-blue-50" },
-    packed: { label: "PACKED", icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
-    dispatched: { label: "SHIPPED", icon: Truck, color: "text-purple-600", bg: "bg-purple-50" },
-    out_for_delivery: { label: "OUT", icon: Truck, color: "text-violet-600", bg: "bg-violet-50" },
-    delivered: { label: "DELIVERED", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-  };
-  return map[status] || { label: status.toUpperCase(), icon: Package, color: "text-gray-600", bg: "bg-gray-50" };
 }

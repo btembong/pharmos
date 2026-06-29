@@ -8,7 +8,7 @@ export function ManagerHeader() {
   const name = user?.firstName || "Manager";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white px-4 py-3">
+    <header className="sticky top-0 z-40 border-b border-[#010128]/10 bg-white px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7371FC]">
@@ -17,7 +17,7 @@ export function ManagerHeader() {
             </span>
           </div>
           <div>
-            <p className="text-xs text-gray-400">{greeting}</p>
+            <p className="text-xs text-[#010128]/40">{greeting}</p>
             <p className="text-sm font-bold text-[#010128]">{name}</p>
           </div>
         </div>
