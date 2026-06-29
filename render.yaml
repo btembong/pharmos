@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: pharmos-api
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: cd apps/api && npx tsx src/index.ts
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: NODE_ENV
+        value: production
