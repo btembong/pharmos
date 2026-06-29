@@ -29,7 +29,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Global middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',')
+    : ['http://localhost:3000'],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(syncCustomer);
