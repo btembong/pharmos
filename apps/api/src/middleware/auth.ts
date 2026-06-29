@@ -44,12 +44,6 @@ export function requireRole(...roles: StaffRole[]) {
     const claims = auth.sessionClaims as any;
     const userRole = (claims?.metadata?.role || claims?.publicMetadata?.role || claims?.public_metadata?.role) as StaffRole | undefined;
 
-    // In development, allow authenticated users through if role metadata isn't configured in session token yet
-    if (!userRole && process.env.NODE_ENV === 'development') {
-      next();
-      return;
-    }
-
     if (!userRole || !roles.includes(userRole)) {
       res.status(403).json({ error: 'Insufficient permissions', code: 'FORBIDDEN' });
       return;

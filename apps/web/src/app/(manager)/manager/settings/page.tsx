@@ -21,6 +21,8 @@ export default function ManagerSettingsPage() {
     ? [user.firstName, user.lastName].filter(Boolean).join(" ") || "Staff Member"
     : "Staff Member";
   const email = user?.primaryEmailAddress?.emailAddress || "";
+  const role = (user?.publicMetadata as { role?: string })?.role || "staff";
+  const roleLabel = role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const initials = name.split(" ").map((n) => n.charAt(0)).join("").toUpperCase().slice(0, 2);
 
   return (
@@ -38,6 +40,10 @@ export default function ManagerSettingsPage() {
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#010128]/40">
               <Mail className="h-3 w-3" />
               <span className="truncate">{email}</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5">
+              <Shield className="h-3 w-3 text-[#7371FC]" />
+              <span className="text-xs font-medium text-[#7371FC]">{roleLabel}</span>
             </div>
           </div>
         </div>
