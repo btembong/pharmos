@@ -197,6 +197,14 @@ router.post('/track/:orderNumber/claim-paid', (req, res, next) => {
       newValues: { proofUrl, claimedAt: new Date().toISOString() },
     });
 
+    // Push notification to staff about proof upload
+    if (proofUrl) {
+      import('../services/push.service').then(({ pushService }) => {
+        pushService.notifyPaymentProof(order.orderNumber)
+          .catch((err) => console.error('[push] notifyPaymentProof failed:', err));
+      });
+    }
+
     res.json({ data: { success: true, proofUrl, message: 'Thank you! Our team will verify your payment shortly.' } });
   } catch (error) {
     console.error('Error claiming payment:', (error as Error).message);
@@ -315,6 +323,12 @@ router.post('/', requireAuth, validate(createOrderSchema), async (req, res) => {
         order: { orderNumber: order.orderNumber, total: Number(order.totalAmount) },
       }).catch((err) => console.error('[notification] order.pending_payment failed:', err));
     }
+
+    // Push notification to staff
+    import('../services/push.service').then(({ pushService }) => {
+      pushService.notifyNewOrder(order.orderNumber, order.totalAmount)
+        .catch((err) => console.error('[push] notifyNewOrder failed:', err));
+    });
 
     res.status(201).json({ data: order });
   } catch (error) {

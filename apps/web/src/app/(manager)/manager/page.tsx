@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Eye,
 } from "lucide-react";
+import { PushNotificationPrompt } from "@/components/manager/push-prompt";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -173,6 +174,9 @@ export default function ManagerHomePage() {
           <ChevronRight className="h-5 w-5 text-[#7371FC]/40" />
         </button>
       )}
+
+      {/* Push notification prompt */}
+      <PushNotificationPrompt />
 
       {/* Today's card */}
       <div className="rounded-2xl bg-[#010128] p-5 mb-4 shadow-lg shadow-[#010128]/15">
