@@ -1,0 +1,17 @@
+{
+  "name": "Pharmos Manager",
+  "short_name": "Manager",
+  "description": "Pharmos order management portal for staff",
+  "start_url": "/manager",
+  "display": "standalone",
+  "background_color": "#010128",
+  "theme_color": "#7371FC",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

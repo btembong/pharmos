@@ -1,0 +1,21 @@
+{
+  "name": "pharmaflow",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "db:generate": "turbo db:generate",
+    "db:migrate": "turbo db:migrate",
+    "db:studio": "turbo db:studio",
+    "db:seed": "cd packages/db && npx tsx seed.ts"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
+    "tailwindcss": "^4.3.1",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0"
+  },
+  "packageManager": "pnpm@11.5.0"
+}

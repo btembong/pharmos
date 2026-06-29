@@ -1,0 +1,120 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  /* Pharmos brand colors */
+  --color-pharmos-indigo: #010128;
+  --color-pharmos-violet: #7371FC;
+  --color-pharmos-violet-light: #A594F9;
+  --color-pharmos-lavender: #E5D9F2;
+  --color-pharmos-lavender-pale: #F5EFFF;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 95% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 95% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 95% 8%;
+    --primary: 240 95% 8%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 270 46% 94%;
+    --secondary-foreground: 240 95% 8%;
+    --muted: 270 30% 96%;
+    --muted-foreground: 240 15% 45%;
+    --accent: 241 95% 72%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 270 20% 88%;
+    --input: 270 20% 88%;
+    --ring: 241 95% 72%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 48% 8%;
+    --foreground: 0 0% 98%;
+    --card: 220 48% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 48% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 181 74% 40%;
+    --primary-foreground: 220 48% 8%;
+    --secondary: 220 30% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 30% 14%;
+    --muted-foreground: 220 15% 60%;
+    --accent: 181 74% 40%;
+    --accent-foreground: 220 48% 8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 30% 18%;
+    --input: 220 30% 18%;
+    --ring: 181 74% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes slide-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Chat scrollbar utilities */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chat message markdown */
+.chat-markdown p:first-child {
+  margin-top: 0;
+}
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+.chat-markdown ul {
+  padding-left: 1.2em;
+}
+.chat-markdown a {
+  color: hsl(241 95% 72%);
+  text-decoration: underline;
+}

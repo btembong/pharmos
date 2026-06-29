@@ -1,0 +1,12 @@
+{
+  "name": "@pharmaflow/utils",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

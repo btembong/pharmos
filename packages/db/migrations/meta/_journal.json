@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1782149994177,
+      "tag": "0000_flaky_captain_cross",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782157060500,
+      "tag": "0001_pale_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782248054325,
+      "tag": "0002_long_surge",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782249257195,
+      "tag": "0003_clear_overlord",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782538547243,
+      "tag": "0004_hot_texas_twister",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782585396018,
+      "tag": "0005_fine_ronan",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782587399841,
+      "tag": "0006_brief_supreme_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782588267286,
+      "tag": "0007_absurd_captain_stacy",
+      "breakpoints": true
+    }
+  ]
+}
