@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -149,6 +149,14 @@ interface Order {
 }
 
 export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center p-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+      <AdminOrdersContent />
+    </Suspense>
+  );
+}
+
+function AdminOrdersContent() {
   const { getToken } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
