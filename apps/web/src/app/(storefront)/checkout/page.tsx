@@ -609,7 +609,7 @@ export default function CheckoutPage() {
               {initiatingTranzak ? (
                 "Redirecting…"
               ) : (
-                <><Zap className="mr-1.5 h-3.5 w-3.5" /> Pay with TranZak</>
+                <><Zap className="mr-1.5 h-3.5 w-3.5 text-[#7371FC]" /> Pay with TranZak</>
               )}
             </Button>
           </CardContent>
