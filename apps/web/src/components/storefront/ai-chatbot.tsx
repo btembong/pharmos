@@ -13,7 +13,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const CHAT_STORAGE_KEY = "pharmos_chat_history";
 const DARK_MODE_KEY = "pharmos_chat_dark";
 const USER_NAME_KEY = "pharmos_chat_username";

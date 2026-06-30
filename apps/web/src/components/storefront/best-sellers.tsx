@@ -8,7 +8,7 @@ import { useCart } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { showStickyCart } from "./sticky-cart-bar";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface Product {
   id: string;

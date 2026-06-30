@@ -22,7 +22,7 @@ interface PaymentMethod {
 const METHOD_OPTIONS = ["zelle", "venmo", "cashapp", "wire_transfer", "check", "cash"] as const;
 type MethodType = typeof METHOD_OPTIONS[number];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function AdminSettingsPage() {
   const { getToken } = useAuth();

@@ -20,7 +20,7 @@ const STATUS_UI: Record<AvailabilityStatus, { icon: typeof CheckCircle2; label: 
   out_of_stock: { icon: XCircle,       label: "Out of Stock", className: "text-muted-foreground bg-secondary/40 border-border/60" },
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function AvailabilityBadge({ productId }: AvailabilityBadgeProps) {
   const [availability, setAvailability] = useState<Availability | null>(null);

@@ -63,7 +63,7 @@ export function StorefrontHeader() {
   // Fetch categories from API (dynamic mega menu)
   const [categories, setCategories] = useState<MenuCategory[]>(FALLBACK_CATEGORIES);
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     fetch(`${API_URL}/api/products/categories`)
       .then((r) => r.json())
       .then((data) => {

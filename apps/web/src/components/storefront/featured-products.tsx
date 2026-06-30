@@ -30,7 +30,7 @@ interface Product {
   prices?: { amount: number; priceType: string }[] | null;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();

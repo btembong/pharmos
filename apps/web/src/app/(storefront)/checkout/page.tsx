@@ -183,7 +183,7 @@ export default function CheckoutPage() {
     if (taxFetchRef.current === key) return;
     taxFetchRef.current = key;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     fetch(`${API_URL}/api/tax/calculate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -206,7 +206,7 @@ export default function CheckoutPage() {
 
   // Fetch active payment methods from API
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     fetch(`${API_URL}/api/payments/methods`)
       .then((r) => r.json())
       .then((d) => {
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
   // Fetch saved addresses
   useEffect(() => {
     if (!isSignedIn) return;
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     getToken().then((token) => {
       if (!token) return;
       fetch(`${API_URL}/api/customers/me/addresses`, {
@@ -302,7 +302,7 @@ export default function CheckoutPage() {
 
     try {
       const token = await getToken();
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
       // Drug interaction check — run before placing order
       const genericNames = items
@@ -578,7 +578,7 @@ export default function CheckoutPage() {
               onClick={async () => {
                 setClaimingPaid(true);
                 try {
-                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
                   const res = await fetch(`${API_URL}/api/orders/track/${orderNumber}/claim-paid`, { method: "POST" });
                   if (res.ok) {
                     setClaimedPaid(true);

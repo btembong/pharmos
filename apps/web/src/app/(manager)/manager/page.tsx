@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { PushNotificationPrompt } from "@/components/manager/push-prompt";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface Stats {
   totalRevenue: number;

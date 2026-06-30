@@ -7,7 +7,7 @@ import { useCart } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { useRef } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface RelatedProduct {
   id: string;

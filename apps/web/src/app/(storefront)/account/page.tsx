@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { User, Mail, Phone, Shield, Calendar, Pencil, Check, X, Loader } from "lucide-react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface CustomerProfile {
   id: string;

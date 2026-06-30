@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Star, CheckCircle2, MessageSquarePlus, ImagePlus, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface ReviewImage {
   url: string;
