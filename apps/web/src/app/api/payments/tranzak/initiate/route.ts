@@ -3,10 +3,12 @@ import { z } from 'zod';
 import { auth } from '@clerk/nextjs/server';
 import * as tranzak from '@/lib/services/tranzak.service';
 import * as orderService from '@/lib/services/order.service';
+import { db } from '@/lib/db';
+import { payments } from '@pharmaflow/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 const schema = z.object({
   orderNumber: z.string().min(1),
-  currencyCode: z.string().length(3).default('XAF'),
 });
 
 export async function POST(request: NextRequest) {
@@ -20,12 +22,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.errors }, { status: 400 });
     }
 
-    const { orderNumber, currencyCode } = parsed.data;
+    const { orderNumber } = parsed.data;
     const order = await orderService.getOrderByNumber(orderNumber);
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     if (order.status !== 'pending_payment') {
       return NextResponse.json({ error: 'Order is not pending payment' }, { status: 400 });
     }
+
+    // Use USD to match order currency
+    const currencyCode = order.currency || 'USD';
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     const returnUrl = `${appUrl}/payment/tranzak/return?orderNumber=${orderNumber}`;
@@ -37,6 +42,28 @@ export async function POST(request: NextRequest) {
       mchTransactionRef: orderNumber,
       returnUrl,
     });
+
+    // Save requestId to DB so the return page can look it up by orderNumber
+    const existing = await db.select({ id: payments.id })
+      .from(payments)
+      .where(and(eq(payments.orderId, order.id), eq(payments.paymentMethod, 'tranzak')))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(payments).values({
+        orderId: order.id,
+        customerId: order.customerId,
+        amount: order.totalAmount,
+        currency: currencyCode,
+        status: 'pending',
+        paymentMethod: 'tranzak',
+        providerRef: result.requestId,
+      });
+    } else {
+      await db.update(payments)
+        .set({ providerRef: result.requestId })
+        .where(eq(payments.id, existing[0].id));
+    }
 
     return NextResponse.json({ data: { requestId: result.requestId, paymentAuthUrl: result.links.paymentAuthUrl } });
   } catch (error) {

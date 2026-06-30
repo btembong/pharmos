@@ -11,20 +11,19 @@ function TranZakReturnContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderNumber = searchParams.get("orderNumber");
-  const requestId = searchParams.get("requestId");
 
   const [status, setStatus] = useState<PaymentStatus>("checking");
   const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
-    if (!requestId) {
+    if (!orderNumber) {
       setStatus("error");
       return;
     }
 
     const check = async () => {
       try {
-        const res = await fetch(`/api/payments/tranzak/status/${requestId}`);
+        const res = await fetch(`/api/payments/tranzak/by-order/${orderNumber}`);
         const json = await res.json();
         const s = json.data?.status as string;
 
@@ -32,7 +31,8 @@ function TranZakReturnContent() {
           setStatus("SUCCESSFUL");
         } else if (s === "FAILED" || s === "CANCELLED") {
           setStatus(s as PaymentStatus);
-        } else if (attempts < 10) {
+        } else if (attempts < 12) {
+          // Poll every 3s for up to 36s
           setAttempts((a) => a + 1);
           setTimeout(check, 3000);
         } else {
@@ -45,7 +45,7 @@ function TranZakReturnContent() {
 
     check();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestId]);
+  }, [orderNumber]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary/30 px-4">
@@ -105,9 +105,9 @@ function TranZakReturnContent() {
               Your payment was not completed. Your order is still saved — you can try again or pay via another method.
             </p>
             <div className="mt-6 flex flex-col gap-3">
-              <Button onClick={() => router.back()}>Try Again</Button>
-              <Button variant="outline" onClick={() => router.push(`/track/${orderNumber}`)}>
-                View Order
+              <Button onClick={() => router.push(`/track/${orderNumber}`)}>Try Again</Button>
+              <Button variant="outline" onClick={() => router.push("/products")}>
+                Continue Shopping
               </Button>
             </div>
           </>

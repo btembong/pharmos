@@ -16,7 +16,7 @@ export function TranZakPayButton({ orderNumber }: { orderNumber: string }) {
       const res = await fetch(`${API_URL}/api/payments/tranzak/initiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderNumber, currencyCode: "XAF" }),
+        body: JSON.stringify({ orderNumber }),
       });
       const json = await res.json();
       if (json.data?.paymentAuthUrl) {
