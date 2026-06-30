@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from 'next/server';
+import * as productService from '@/lib/services/product.service';
+import { db } from '@/lib/db';
+import { productReviews } from '@pharmaflow/db/schema';
+import { eq, and, isNull, desc, avg, count } from 'drizzle-orm';
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    // Support slug or UUID
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const product = UUID_REGEX.test(id)
+      ? await productService.getProductById(id)
+      : await productService.getProductBySlug(id);
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found', code: 'NOT_FOUND' }, { status: 404 });
+    }
+
+    const reviews = await db
+      .select({
+        id: productReviews.id,
+        reviewerName: productReviews.reviewerName,
+        rating: productReviews.rating,
+        title: productReviews.title,
+        body: productReviews.body,
+        images: productReviews.images,
+        isVerifiedPurchase: productReviews.isVerifiedPurchase,
+        createdAt: productReviews.createdAt,
+      })
+      .from(productReviews)
+      .where(
+        and(
+          eq(productReviews.productId, product.id),
+          eq(productReviews.isApproved, true),
+          isNull(productReviews.deletedAt)
+        )
+      )
+      .orderBy(desc(productReviews.createdAt));
+
+    const [stats] = await db
+      .select({ avgRating: avg(productReviews.rating), totalReviews: count() })
+      .from(productReviews)
+      .where(
+        and(
+          eq(productReviews.productId, product.id),
+          eq(productReviews.isApproved, true),
+          isNull(productReviews.deletedAt)
+        )
+      );
+
+    const breakdown = await db
+      .select({ rating: productReviews.rating, count: count() })
+      .from(productReviews)
+      .where(
+        and(
+          eq(productReviews.productId, product.id),
+          eq(productReviews.isApproved, true),
+          isNull(productReviews.deletedAt)
+        )
+      )
+      .groupBy(productReviews.rating);
+
+    const ratingBreakdown: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const row of breakdown) ratingBreakdown[row.rating] = Number(row.count);
+
+    return NextResponse.json({
+      data: reviews,
+      meta: {
+        avgRating: stats?.avgRating ? Number(Number(stats.avgRating).toFixed(1)) : 0,
+        totalReviews: Number(stats?.totalReviews ?? 0),
+        ratingBreakdown,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting reviews:', (error as Error).message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
