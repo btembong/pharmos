@@ -102,6 +102,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.106.0
+        version: 0.106.0(zod@3.25.76)
+      '@aws-sdk/client-s3':
+        specifier: ^3.1074.0
+        version: 3.1074.0
       '@base-ui/react':
         specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -111,18 +117,30 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.80.0(react@19.2.7))
+      '@pharmaflow/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@pharmaflow/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@pharmaflow/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@upstash/ratelimit':
+        specifier: ^2.0.0
+        version: 2.0.8(@upstash/redis@1.38.0)
+      '@upstash/redis':
+        specifier: ^1.34.0
+        version: 1.38.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      drizzle-orm:
+        specifier: ^0.39.0
+        version: 0.39.3(@neondatabase/serverless@0.10.4)(@types/pg@8.20.0)(pg@8.22.0)
       lucide-react:
         specifier: ^1.21.0
         version: 1.21.0(react@19.2.7)
@@ -147,6 +165,9 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      svix:
+        specifier: ^1.60.0
+        version: 1.96.0
       swr:
         specifier: ^2.3.0
         version: 2.3.4(react@19.2.7)
@@ -159,6 +180,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      web-push:
+        specifier: ^3.6.7
+        version: 3.6.7
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -175,6 +199,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.17)
+      '@types/web-push':
+        specifier: ^3.6.4
+        version: 3.6.4
       eslint:
         specifier: ^8
         version: 8.57.1

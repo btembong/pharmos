@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/release-reservations",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/expiry-alerts",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/low-stock-alerts",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/subscriptions",
+      "schedule": "0 13 * * *"
+    }
+  ]
+}
