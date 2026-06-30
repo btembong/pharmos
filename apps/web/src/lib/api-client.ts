@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 
-const API_URL = process.env.API_URL || 'http://localhost:3001';
+const API_URL = process.env.API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001');
 
 export class ApiError extends Error {
   status: number;
