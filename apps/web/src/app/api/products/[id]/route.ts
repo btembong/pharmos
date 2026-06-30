@@ -4,13 +4,17 @@ import { isAuthError, requireAuth, requireRole } from '@/lib/auth';
 import { writeAuditLog } from '@/lib/audit';
 import * as productService from '@/lib/services/product.service';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const product = await productService.getProductById(id);
+    const product = UUID_REGEX.test(id)
+      ? await productService.getProductById(id)
+      : await productService.getProductBySlug(id);
     if (!product) {
       return NextResponse.json({ error: 'Product not found', code: 'NOT_FOUND' }, { status: 404 });
     }
