@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, Clock, XCircle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type PaymentStatus = "checking" | "SUCCESSFUL" | "PENDING" | "FAILED" | "CANCELLED" | "error";
 
-export default function TranZakReturnPage() {
+function TranZakReturnContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderNumber = searchParams.get("orderNumber");
@@ -33,7 +33,6 @@ export default function TranZakReturnPage() {
         } else if (s === "FAILED" || s === "CANCELLED") {
           setStatus(s as PaymentStatus);
         } else if (attempts < 10) {
-          // Still pending — poll every 3 seconds up to 10 times (~30s)
           setAttempts((a) => a + 1);
           setTimeout(check, 3000);
         } else {
@@ -115,5 +114,17 @@ export default function TranZakReturnPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TranZakReturnPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <TranZakReturnContent />
+    </Suspense>
   );
 }
