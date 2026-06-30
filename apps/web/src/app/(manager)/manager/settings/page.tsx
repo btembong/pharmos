@@ -2,6 +2,7 @@
 
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   User,
   Mail,
@@ -16,6 +17,23 @@ export default function ManagerSettingsPage() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") setInstallPrompt(null);
+  };
 
   const name = user
     ? [user.firstName, user.lastName].filter(Boolean).join(" ") || "Staff Member"
@@ -63,7 +81,7 @@ export default function ManagerSettingsPage() {
         <MenuItem icon={ExternalLink} label="Admin Dashboard" subtitle="Full back-office"
           onClick={() => router.push("/admin/dashboard")} />
         <MenuItem icon={Smartphone} label="Install App" subtitle="Add to home screen for quick access"
-          onClick={() => {}} disabled />
+          onClick={handleInstall} disabled={!installPrompt} />
       </div>
 
       {/* Sign out */}
