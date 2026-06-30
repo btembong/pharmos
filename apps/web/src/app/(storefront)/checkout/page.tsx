@@ -140,6 +140,7 @@ export default function CheckoutPage() {
   const [copiedMethod, setCopiedMethod] = useState<string | null>(null);
   const [claimingPaid, setClaimingPaid] = useState(false);
   const [claimedPaid, setClaimedPaid] = useState(false);
+  const [initiatingTranzak, setInitiatingTranzak] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<{ id: string; label: string | null; recipientName: string | null; addressLine1: string; addressLine2: string | null; city: string; state: string; zipCode: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id: string; method: string; label: string; details: string; instructions: string | null }[]>([]);
 
@@ -559,6 +560,49 @@ export default function CheckoutPage() {
                 );
               })}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* TranZak — pay by card or mobile money */}
+        <Card className="mt-4 overflow-hidden border-accent/20">
+          <div className="border-b border-accent/10 bg-accent/5 px-5 py-3">
+            <p className="text-sm font-semibold text-accent">Pay instantly with TranZak</p>
+            <p className="text-xs text-muted-foreground">Visa / Mastercard · Mobile Money</p>
+          </div>
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                Pay securely online — no need to send manually. Your order is confirmed automatically once payment succeeds.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              disabled={initiatingTranzak}
+              onClick={async () => {
+                if (!orderNumber) return;
+                setInitiatingTranzak(true);
+                try {
+                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+                  const res = await fetch(`${API_URL}/api/payments/tranzak/initiate`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderNumber, currencyCode: "XAF" }),
+                  });
+                  const json = await res.json();
+                  if (json.data?.paymentAuthUrl) {
+                    window.location.href = json.data.paymentAuthUrl;
+                  } else {
+                    toast.error("Could not start TranZak payment — please try again.");
+                  }
+                } catch {
+                  toast.error("Network error — please try again.");
+                } finally {
+                  setInitiatingTranzak(false);
+                }
+              }}
+            >
+              {initiatingTranzak ? "Redirecting…" : "Pay with TranZak"}
+            </Button>
           </CardContent>
         </Card>
 
