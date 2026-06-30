@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { TrackingCopyButton } from "@/components/storefront/tracking-copy-button";
 import { ClaimPaidButton } from "@/components/storefront/claim-paid-button";
+import { TranZakPayButton } from "@/components/storefront/tranzak-pay-button";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -387,6 +388,7 @@ export default async function TrackingPage({
                 </div>
               ))}
             </div>
+            <TranZakPayButton orderNumber={tracking.orderNumber} />
             <ClaimPaidButton orderNumber={tracking.orderNumber} />
           </CardContent>
         </Card>

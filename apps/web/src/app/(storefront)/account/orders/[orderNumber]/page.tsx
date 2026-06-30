@@ -21,6 +21,9 @@ import {
   Check,
 } from "lucide-react";
 
+import { TranZakPayButton } from "@/components/storefront/tranzak-pay-button";
+import { ClaimPaidButton } from "@/components/storefront/claim-paid-button";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface OrderDetail {
@@ -179,6 +182,20 @@ export default function OrderDetailPage() {
       </div>
 
       <div className="space-y-4">
+        {/* Payment actions for pending orders */}
+        {order.status === "pending_payment" && (
+          <Card className="overflow-hidden border-accent/20">
+            <div className="border-b border-accent/10 bg-accent/5 px-5 py-3">
+              <p className="text-sm font-semibold text-accent">Action Required — Complete Payment</p>
+              <p className="text-xs text-muted-foreground">Your order ships once payment is confirmed</p>
+            </div>
+            <CardContent className="p-4">
+              <TranZakPayButton orderNumber={order.orderNumber} />
+              <ClaimPaidButton orderNumber={order.orderNumber} />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tracking */}
         {order.trackingNumber && (
           <Card>
