@@ -565,9 +565,14 @@ export default function CheckoutPage() {
 
         {/* TranZak — pay by card or mobile money */}
         <Card className="mt-4 overflow-hidden border-accent/20">
-          <div className="border-b border-accent/10 bg-accent/5 px-5 py-3">
-            <p className="text-sm font-semibold text-accent">Pay instantly with TranZak</p>
-            <p className="text-xs text-muted-foreground">Visa / Mastercard · Mobile Money</p>
+          <div className="flex items-center gap-3 border-b border-accent/10 bg-accent/5 px-5 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10">
+              <CreditCard className="h-4 w-4 text-accent" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-accent">Pay instantly with TranZak</p>
+              <p className="text-xs text-muted-foreground">Visa / Mastercard · Mobile Money</p>
+            </div>
           </div>
           <CardContent className="flex items-center gap-4 p-5">
             <div className="flex-1">
@@ -601,7 +606,11 @@ export default function CheckoutPage() {
                 }
               }}
             >
-              {initiatingTranzak ? "Redirecting…" : "Pay with TranZak"}
+              {initiatingTranzak ? (
+                "Redirecting…"
+              ) : (
+                <><Zap className="mr-1.5 h-3.5 w-3.5" /> Pay with TranZak</>
+              )}
             </Button>
           </CardContent>
         </Card>
