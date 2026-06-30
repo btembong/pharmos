@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
     // Use USD to match order currency
     const currencyCode = order.currency || 'USD';
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    // Prefer VERCEL_URL (current deployment) over NEXT_PUBLIC_APP_URL (may point to production)
+    const appUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
     const returnUrl = `${appUrl}/payment/tranzak/return?orderNumber=${orderNumber}`;
 
     const result = await tranzak.createPaymentRequest({

@@ -11,19 +11,28 @@ function TranZakReturnContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderNumber = searchParams.get("orderNumber");
+  const requestId = searchParams.get("requestId");
+  const success = searchParams.get("success");
 
   const [status, setStatus] = useState<PaymentStatus>("checking");
   const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
-    if (!orderNumber) {
-      setStatus("error");
+    if (!orderNumber) { setStatus("error"); return; }
+
+    // TranZak passes ?success=true in the URL — use it for fast resolution
+    if (success === "true") {
+      setStatus("SUCCESSFUL");
       return;
     }
 
+    // Otherwise poll by orderNumber
     const check = async () => {
       try {
-        const res = await fetch(`/api/payments/tranzak/by-order/${orderNumber}`);
+        const url = requestId
+          ? `/api/payments/tranzak/status/${requestId}`
+          : `/api/payments/tranzak/by-order/${orderNumber}`;
+        const res = await fetch(url);
         const json = await res.json();
         const s = json.data?.status as string;
 
@@ -32,7 +41,6 @@ function TranZakReturnContent() {
         } else if (s === "FAILED" || s === "CANCELLED") {
           setStatus(s as PaymentStatus);
         } else if (attempts < 12) {
-          // Poll every 3s for up to 36s
           setAttempts((a) => a + 1);
           setTimeout(check, 3000);
         } else {
@@ -87,7 +95,7 @@ function TranZakReturnContent() {
             </div>
             <h1 className="text-xl font-bold text-primary">Payment pending</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your payment is being processed. We'll send you an email once confirmed — this usually takes a few minutes.
+              Your payment is being processed. We'll send you an email once confirmed.
             </p>
             <Button className="mt-6 w-full" onClick={() => router.push(`/track/${orderNumber}`)}>
               <Package className="mr-2 h-4 w-4" /> Track Order
