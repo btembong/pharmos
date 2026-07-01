@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import * as productService from '@/lib/services/product.service';
 import { db } from '@/lib/db';
 import { productReviews } from '@pharmaflow/db/schema';
@@ -78,6 +79,56 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error getting reviews:', (error as Error).message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { id } = await params;
+    const product = UUID_REGEX.test(id)
+      ? await productService.getProductById(id)
+      : await productService.getProductBySlug(id);
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found', code: 'NOT_FOUND' }, { status: 404 });
+    }
+
+    const body = await request.json();
+    const { reviewerName, rating, title, body: reviewBody, images } = body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
+    }
+    if (!reviewerName?.trim()) {
+      return NextResponse.json({ error: 'Reviewer name is required' }, { status: 400 });
+    }
+
+    const [review] = await db
+      .insert(productReviews)
+      .values({
+        productId: product.id,
+        reviewerName: reviewerName.trim(),
+        rating: Number(rating),
+        title: title?.trim() || null,
+        body: reviewBody?.trim() || null,
+        images: images ?? null,
+        isVerifiedPurchase: false,
+        isApproved: true,
+      })
+      .returning();
+
+    return NextResponse.json({ data: review }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating review:', (error as Error).message);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
