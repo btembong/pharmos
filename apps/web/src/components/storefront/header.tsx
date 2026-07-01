@@ -109,7 +109,7 @@ export function StorefrontHeader() {
       </div>
 
       {/* Main header */}
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
+      <div className="mx-auto flex max-w-screen-xl items-center gap-4 px-6 py-3">
 
         {/* Mobile menu */}
         <Sheet>
@@ -444,50 +444,72 @@ export function StorefrontHeader() {
         </div>
       </div>
 
-      {/* Category nav — desktop with mega menu */}
-      <nav className="hidden border-t border-border/50 md:block">
-        <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-1">
-          <Link href="/products" className="rounded-md px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-muted">
+      {/* Category nav — desktop */}
+      <nav className="hidden border-t border-border/40 bg-muted/20 md:block">
+        <div className="mx-auto flex max-w-screen-xl items-center px-6">
+
+          {/* Shop All */}
+          <Link
+            href="/products"
+            className="flex shrink-0 items-center gap-1.5 border-r border-border/40 py-3 pr-5 mr-3 text-sm font-semibold text-foreground transition-colors hover:text-accent"
+          >
+            <Package className="h-3.5 w-3.5" />
             Shop All
           </Link>
 
-          {/* Categories dropdown */}
-          <div className="relative" ref={megaRef}>
-            <button
-              onClick={() => setMegaOpen(!megaOpen)}
-              className="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Categories
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
-            </button>
+          {/* Category links — all inline with mega menu on hover */}
+          <div className="relative flex flex-1 items-center" ref={megaRef}>
+            {categories.map((cat, i) => {
+              const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
+              return (
+                <Link
+                  key={cat.slug}
+                  href={`/products/category/${cat.slug}`}
+                  onMouseEnter={() => { setMegaOpen(true); setMegaHover(i); }}
+                  onMouseLeave={() => setMegaOpen(false)}
+                  className="group relative flex items-center gap-1.5 whitespace-nowrap px-3 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0 transition-colors group-hover:text-accent" />
+                  {cat.name}
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 rounded-full bg-accent transition-transform duration-200 group-hover:scale-x-100" />
+                </Link>
+              );
+            })}
 
-            {/* Mega menu dropdown — split layout with image panel */}
+            {/* Mega menu — slides down from the nav bar */}
             {megaOpen && (
-              <div className="absolute left-0 top-full mt-1 w-[720px] overflow-hidden rounded-xl border bg-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+              <div
+                className="absolute left-0 top-full z-50 w-[680px] overflow-hidden rounded-b-xl rounded-tr-xl border border-t-0 bg-white shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
+                onMouseEnter={() => setMegaOpen(true)}
+                onMouseLeave={() => setMegaOpen(false)}
+              >
                 <div className="flex">
-                  {/* Left — category links */}
                   <div className="flex-1 p-3">
-                    <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Browse Categories</p>
+                    <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Browse Categories
+                    </p>
                     <div className="space-y-0.5">
                       {categories.map((cat, i) => {
                         const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
                         return (
-                        <Link
-                          key={cat.slug}
-                          href={`/products/category/${cat.slug}`}
-                          onClick={() => setMegaOpen(false)}
-                          onMouseEnter={() => setMegaHover(i)}
-                          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${megaHover === i ? "bg-muted" : "hover:bg-muted/50"}`}
-                        >
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-muted/60 ${cat.color || "text-muted-foreground"}`}>
-                            <Icon className="h-4.5 w-4.5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-foreground">{cat.name}</p>
-                            <p className="text-[11px] text-muted-foreground">{cat.description}</p>
-                          </div>
-                          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground/40" />
-                        </Link>
+                          <Link
+                            key={cat.slug}
+                            href={`/products/category/${cat.slug}`}
+                            onClick={() => setMegaOpen(false)}
+                            onMouseEnter={() => setMegaHover(i)}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${megaHover === i ? "bg-muted" : "hover:bg-muted/50"}`}
+                          >
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-muted/60 ${cat.color || "text-muted-foreground"}`}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-foreground">{cat.name}</p>
+                              {cat.description && (
+                                <p className="text-[11px] text-muted-foreground">{cat.description}</p>
+                              )}
+                            </div>
+                            <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground/40" />
+                          </Link>
                         );
                       })}
                     </div>
@@ -501,16 +523,14 @@ export function StorefrontHeader() {
                       </Link>
                     </div>
                   </div>
-
-                  {/* Right — featured image panel */}
-                  <div className="relative w-[280px] overflow-hidden">
+                  <div className="relative w-[260px] overflow-hidden">
                     {(() => {
                       const cat = categories[megaHover];
                       if (!cat) return null;
                       const imgUrl = cat.megaMenuImageUrl || cat.heroImageUrl;
                       const CatIcon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
                       return (
-                        <div key={cat.slug} className="relative h-full animate-in fade-in duration-300">
+                        <div key={cat.slug} className="relative h-full min-h-[220px] animate-in fade-in duration-200">
                           {imgUrl ? (
                             <>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -543,26 +563,18 @@ export function StorefrontHeader() {
             )}
           </div>
 
-          {/* Quick category links — first 4 */}
-          {categories.slice(0, 4).map((cat, i) => {
-            const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
-            return (
-              <Link
-                key={cat.slug}
-                href={`/products/category/${cat.slug}`}
-                className={i === 0
-                  ? "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold text-accent hover:bg-accent/8"
-                  : "rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                }
-              >
-                {i === 0 && <Icon className="h-3.5 w-3.5" />}
-                {cat.name}
-              </Link>
-            );
-          })}
-
-          <div className="ml-auto">
-            <Link href="/account/orders" className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+          {/* Right utility links */}
+          <div className="flex shrink-0 items-center gap-0.5 border-l border-border/40 ml-3 pl-5">
+            <Link
+              href="/faq"
+              className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/track"
+              className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
               Track Order
             </Link>
           </div>

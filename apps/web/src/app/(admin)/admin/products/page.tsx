@@ -65,8 +65,15 @@ interface Product {
   isActive: boolean;
   tags: string[] | null;
   images: { url: string; alt: string; isPrimary: boolean }[] | null;
-  category: { name: string } | null;
+  categoryId: string | null;
+  category: { id: string; name: string } | null;
   prices: { amount: string; priceType: string }[];
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -96,6 +103,7 @@ const EMPTY_FORM = {
   strength: "", packSize: "", manufacturer: "", shortDescription: "",
   description: "", price: "", imageUrl: "", requiresPrescription: false,
   isResearchCompound: false, isFeatured: false, tags: "" as string,
+  categoryId: "",
 };
 
 export default function AdminProductsPage() {
@@ -114,6 +122,9 @@ export default function AdminProductsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [uploading, setUploading] = useState(false);
+
+  // Categories
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // Pairings
   const [pairingsOpen, setPairingsOpen] = useState(false);
@@ -147,6 +158,13 @@ export default function AdminProductsPage() {
     const timeout = setTimeout(() => loadProducts(), search ? 300 : 0);
     return () => clearTimeout(timeout);
   }, [search, loadProducts]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/products/categories`)
+      .then((r) => r.ok ? r.json() : { data: [] })
+      .then((d) => setCategories(d.data || []))
+      .catch(() => {});
+  }, []);
 
   // ─── Filtering ───────────────────────────────────────────────────────────────
 
@@ -280,6 +298,7 @@ export default function AdminProductsPage() {
       requiresPrescription: product.requiresPrescription,
       isResearchCompound: false, isFeatured: product.isFeatured ?? false,
       tags: (product.tags ?? []).join(", "),
+      categoryId: product.categoryId ?? product.category?.id ?? "",
     });
     setDialogOpen(true);
   }
@@ -301,6 +320,7 @@ export default function AdminProductsPage() {
         requiresPrescription: form.requiresPrescription, isResearchCompound: form.isResearchCompound,
         isFeatured: form.isFeatured,
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        categoryId: form.categoryId || undefined,
       };
       if (!editingId && form.price) body.price = form.price;
       if (form.imageUrl) body.images = [{ url: form.imageUrl, alt: form.name, isPrimary: true }];
@@ -840,6 +860,21 @@ export default function AdminProductsPage() {
                 <label className="mb-1 block text-sm font-medium">Manufacturer</label>
                 <Input value={form.manufacturer} onChange={(e) => updateForm("manufacturer", e.target.value)} />
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Category</label>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => updateForm("categoryId", e.target.value)}
+                  className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+                >
+                  <option value="">No category</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium">Price (USD) {editingId ? "" : "*"}</label>
                 <Input type="number" step="0.01" min="0" value={form.price} onChange={(e) => updateForm("price", e.target.value)} placeholder="9.99" />

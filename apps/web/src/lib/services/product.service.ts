@@ -181,6 +181,22 @@ export async function updateCategory(id: string, data: Partial<NewProductCategor
 // --- Prices ---
 
 export async function setProductPrice(data: NewProductPrice) {
+  const existing = await db.query.productPrices.findFirst({
+    where: and(
+      eq(productPrices.productId, data.productId!),
+      eq(productPrices.priceType, data.priceType ?? 'b2c')
+    ),
+  });
+
+  if (existing) {
+    const [price] = await db
+      .update(productPrices)
+      .set({ amount: data.amount, compareAtPrice: data.compareAtPrice ?? existing.compareAtPrice, currency: data.currency ?? 'USD' })
+      .where(eq(productPrices.id, existing.id))
+      .returning();
+    return price;
+  }
+
   const [price] = await db.insert(productPrices).values(data).returning();
   return price;
 }
