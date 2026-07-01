@@ -102,7 +102,7 @@ function ProductCard({ product }: { product: Product }) {
           {price && (
             <button
               onClick={handleAddToCart}
-              className="absolute bottom-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white shadow-lg opacity-0 transition-all duration-300 hover:bg-accent/90 hover:scale-110 group-hover:opacity-100"
+              className="absolute bottom-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-all duration-300 hover:bg-accent/90 hover:scale-110"
               aria-label="Add to cart"
             >
               <ShoppingCart className="h-4 w-4" />
