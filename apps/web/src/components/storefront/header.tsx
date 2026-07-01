@@ -445,7 +445,7 @@ export function StorefrontHeader() {
       </div>
 
       {/* Category nav — desktop */}
-      <nav className="hidden border-t border-border/40 bg-muted/20 md:block">
+      <nav ref={megaRef} className="relative hidden border-t border-border/40 bg-muted/20 md:block">
         <div className="mx-auto flex max-w-screen-xl items-center px-6">
 
           {/* Shop All */}
@@ -457,8 +457,8 @@ export function StorefrontHeader() {
             Shop All
           </Link>
 
-          {/* Category links — all inline with mega menu on hover */}
-          <div className="relative flex flex-1 items-center" ref={megaRef}>
+          {/* Category links */}
+          <div className="flex flex-1 items-center">
             {categories.map((cat, i) => {
               const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
               return (
@@ -475,92 +475,6 @@ export function StorefrontHeader() {
                 </Link>
               );
             })}
-
-            {/* Mega menu — slides down from the nav bar */}
-            {megaOpen && (
-              <div
-                className="absolute left-0 top-full z-50 w-[680px] overflow-hidden rounded-b-xl rounded-tr-xl border border-t-0 bg-white shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
-                onMouseEnter={() => setMegaOpen(true)}
-                onMouseLeave={() => setMegaOpen(false)}
-              >
-                <div className="flex">
-                  <div className="flex-1 p-3">
-                    <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Browse Categories
-                    </p>
-                    <div className="space-y-0.5">
-                      {categories.map((cat, i) => {
-                        const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
-                        return (
-                          <Link
-                            key={cat.slug}
-                            href={`/products/category/${cat.slug}`}
-                            onClick={() => setMegaOpen(false)}
-                            onMouseEnter={() => setMegaHover(i)}
-                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${megaHover === i ? "bg-muted" : "hover:bg-muted/50"}`}
-                          >
-                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-muted/60 ${cat.color || "text-muted-foreground"}`}>
-                              <Icon className="h-4 w-4" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-foreground">{cat.name}</p>
-                              {cat.description && (
-                                <p className="text-[11px] text-muted-foreground">{cat.description}</p>
-                              )}
-                            </div>
-                            <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground/40" />
-                          </Link>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-2 border-t pt-2">
-                      <Link
-                        href="/products"
-                        onClick={() => setMegaOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-center text-sm font-medium text-accent hover:bg-muted/50"
-                      >
-                        View All Products
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="relative w-[260px] overflow-hidden">
-                    {(() => {
-                      const cat = categories[megaHover];
-                      if (!cat) return null;
-                      const imgUrl = cat.megaMenuImageUrl || cat.heroImageUrl;
-                      const CatIcon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
-                      return (
-                        <div key={cat.slug} className="relative h-full min-h-[220px] animate-in fade-in duration-200">
-                          {imgUrl ? (
-                            <>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={imgUrl} alt={cat.name} className="h-full w-full object-cover" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                            </>
-                          ) : (
-                            <div className={`flex h-full w-full items-center justify-center ${cat.bgColor || "bg-[#7371FC]"}`}>
-                              <CatIcon className="h-20 w-20 text-white/15" strokeWidth={1} />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                            </div>
-                          )}
-                          <div className="absolute inset-x-0 bottom-0 p-5">
-                            <p className="text-lg font-bold text-white">{cat.name}</p>
-                            <p className="mt-0.5 text-xs text-white/70">{cat.description}</p>
-                            <Link
-                              href={`/products/category/${cat.slug}`}
-                              onClick={() => setMegaOpen(false)}
-                              className="mt-3 inline-block rounded-lg bg-white px-4 py-2 text-xs font-semibold text-[#010128] transition-opacity hover:opacity-90"
-                            >
-                              Shop {cat.name}
-                            </Link>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right utility links */}
@@ -579,6 +493,79 @@ export function StorefrontHeader() {
             </Link>
           </div>
         </div>
+
+        {/* Full-width horizontal mega menu */}
+        {megaOpen && (
+          <div
+            className="absolute left-0 right-0 top-full z-50 border-b border-border bg-white shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150"
+            onMouseEnter={() => setMegaOpen(true)}
+            onMouseLeave={() => setMegaOpen(false)}
+          >
+            <div className="mx-auto max-w-screen-xl px-6 py-6">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Browse Categories
+                </p>
+                <Link
+                  href="/products"
+                  onClick={() => setMegaOpen(false)}
+                  className="text-xs font-medium text-accent transition-colors hover:text-accent/80"
+                >
+                  View all products →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 lg:grid-cols-6">
+                {categories.map((cat, i) => {
+                  const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
+                  const imgUrl = cat.megaMenuImageUrl || cat.heroImageUrl;
+                  const bgColor = cat.bgColor || "bg-[#7371FC]";
+                  return (
+                    <Link
+                      key={cat.slug}
+                      href={`/products/category/${cat.slug}`}
+                      onClick={() => setMegaOpen(false)}
+                      onMouseEnter={() => setMegaHover(i)}
+                      className={`group flex flex-col overflow-hidden rounded-xl border transition-all duration-200 ${megaHover === i ? "border-accent/30 shadow-md" : "border-transparent hover:border-border"}`}
+                    >
+                      {/* Image / gradient preview */}
+                      <div className="relative aspect-video overflow-hidden rounded-t-xl">
+                        {imgUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={imgUrl}
+                            alt={cat.name}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className={`flex h-full w-full items-center justify-center ${bgColor}`}>
+                            <Icon className="h-10 w-10 text-white/30" strokeWidth={1.5} />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        <div className={`absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg ${bgColor} shadow`}>
+                          <Icon className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      </div>
+
+                      {/* Text */}
+                      <div className="p-2.5">
+                        <p className={`text-[13px] font-semibold transition-colors ${megaHover === i ? "text-accent" : "text-foreground"}`}>
+                          {cat.name}
+                        </p>
+                        {cat.description && (
+                          <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+                            {cat.description}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
     </header>
   );
