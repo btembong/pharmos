@@ -7,10 +7,11 @@ import {
   Search, Menu, FlaskConical, Package, User, ShoppingCart,
   Pill, Leaf, HeartPulse, BriefcaseMedical, Stethoscope,
   ChevronDown, Minus, Plus, Trash2, ShieldCheck, Syringe, Award,
+  ArrowRight, X,
   type LucideIcon,
 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 // Icon name → component map for dynamic rendering
@@ -53,12 +54,16 @@ export function StorefrontHeader() {
   const { isSignedIn } = useUser();
   const { items, itemCount, subtotal, removeItem, updateQuantity } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchResults, setSearchResults] = useState<{ id: string; name: string; slug: string; strength: string | null; prices: { amount: string }[]; images: { url: string; isPrimary: boolean }[] | null }[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [promoIdx, setPromoIdx] = useState(0);
   const [megaOpen, setMegaOpen] = useState(false);
   const [megaHover, setMegaHover] = useState(0);
   const [cartPreview, setCartPreview] = useState(false);
   const megaRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // Fetch categories from API (dynamic mega menu)
   const [categories, setCategories] = useState<MenuCategory[]>(FALLBACK_CATEGORIES);
@@ -82,7 +87,25 @@ export function StorefrontHeader() {
     return () => clearInterval(interval);
   }, []);
 
-  // Close mega menu on outside click
+  // Live search — debounced
+  const API_URL_SEARCH = process.env.NEXT_PUBLIC_API_URL || "";
+  const fetchSearch = useCallback(async (q: string) => {
+    if (q.trim().length < 2) { setSearchResults([]); setSearchLoading(false); return; }
+    setSearchLoading(true);
+    try {
+      const res = await fetch(`${API_URL_SEARCH}/api/products?search=${encodeURIComponent(q)}&limit=6`);
+      const data = await res.json();
+      setSearchResults(data.data || []);
+    } catch { setSearchResults([]); }
+    finally { setSearchLoading(false); }
+  }, [API_URL_SEARCH]);
+
+  useEffect(() => {
+    const t = setTimeout(() => fetchSearch(searchQuery), 280);
+    return () => clearTimeout(t);
+  }, [searchQuery, fetchSearch]);
+
+  // Close on outside click / Escape
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (megaRef.current && !megaRef.current.contains(e.target as Node)) {
@@ -91,9 +114,16 @@ export function StorefrontHeader() {
       if (cartRef.current && !cartRef.current.contains(e.target as Node)) {
         setCartPreview(false);
       }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") { setSearchFocused(false); setMegaOpen(false); setCartPreview(false); }
     }
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => { document.removeEventListener("mousedown", handleClick); document.removeEventListener("keydown", handleKey); };
   }, []);
 
   return (
@@ -277,31 +307,149 @@ export function StorefrontHeader() {
           <img src="/Logo.png" alt="Pharmos" className="h-16 w-auto" />
         </Link>
 
-        {/* Search bar — desktop */}
-        <div className="hidden flex-1 md:flex">
+        {/* Search bar — desktop with live results */}
+        <div className="relative hidden flex-1 md:block" ref={searchRef}>
           <form
             action="/products"
             method="get"
-            className="flex w-full max-w-lg items-center rounded-full border border-input bg-muted/40 pl-4 pr-1.5 transition-all focus-within:border-ring focus-within:bg-white focus-within:ring-2 focus-within:ring-ring/20"
+            onSubmit={() => setSearchFocused(false)}
+            className={`flex w-full items-center rounded-full border bg-muted/40 pl-4 pr-1.5 transition-all duration-200 ${searchFocused ? "border-accent bg-white shadow-lg shadow-accent/10 ring-2 ring-accent/20" : "border-input hover:border-input/80"}`}
           >
-            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Search className={`h-4 w-4 shrink-0 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
             <input
               type="text"
               name="search"
-              placeholder="Search peptides, supplements, medicines..."
+              placeholder="Search products, brands, ingredients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+              onFocus={() => setSearchFocused(true)}
+              className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground/70"
+              autoComplete="off"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(""); setSearchResults([]); }}
+                className="mr-1 rounded-full p-1 text-muted-foreground/50 hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
             <Button
               type="submit"
               size="sm"
-              className="my-1.5 rounded-full bg-accent px-4 text-white hover:bg-accent/90"
-              aria-label="Search products"
+              className="my-1.5 rounded-full bg-accent px-5 text-white hover:bg-accent/90"
             >
               Search
             </Button>
           </form>
+
+          {/* Live-search dropdown */}
+          {searchFocused && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+              {searchQuery.trim().length < 2 ? (
+                /* Empty state — show category quick links */
+                <div className="p-4">
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Browse Categories
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((cat) => {
+                      const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
+                      return (
+                        <Link
+                          key={cat.slug}
+                          href={`/products/category/${cat.slug}`}
+                          onClick={() => setSearchFocused(false)}
+                          className="flex items-center gap-1.5 rounded-full border bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
+                        >
+                          <Icon className="h-3 w-3" />
+                          {cat.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 border-t pt-3">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Popular Searches
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {["BPC-157", "Ibuprofen", "Vitamin D", "Omega-3", "Blood pressure monitor"].map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => setSearchQuery(term)}
+                          className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-accent"
+                        >
+                          <Search className="h-3 w-3" />
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : searchLoading ? (
+                /* Loading */
+                <div className="flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                  Searching...
+                </div>
+              ) : searchResults.length === 0 ? (
+                /* No results */
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  No products found for &ldquo;{searchQuery}&rdquo;
+                </div>
+              ) : (
+                /* Results list */
+                <div>
+                  {searchResults.map((product) => {
+                    const img = product.images?.find((i) => i.isPrimary)?.url ?? product.images?.[0]?.url;
+                    const price = product.prices?.[0]?.amount;
+                    return (
+                      <Link
+                        key={product.id}
+                        href={`/products/${product.slug}`}
+                        onClick={() => { setSearchFocused(false); setSearchQuery(""); }}
+                        className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+                      >
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-secondary/30">
+                          {img ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={img} alt={product.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <Package className="h-5 w-5 text-muted-foreground/30" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">{product.name}</p>
+                          {product.strength && (
+                            <p className="text-xs text-muted-foreground">{product.strength}</p>
+                          )}
+                        </div>
+                        {price && (
+                          <span className="shrink-0 text-sm font-bold text-accent">
+                            ${Number(price).toFixed(2)}
+                          </span>
+                        )}
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/30" />
+                      </Link>
+                    );
+                  })}
+                  <div className="border-t px-4 py-2.5">
+                    <Link
+                      href={`/products?search=${encodeURIComponent(searchQuery)}`}
+                      onClick={() => { setSearchFocused(false); }}
+                      className="flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent/80"
+                    >
+                      <Search className="h-3.5 w-3.5" />
+                      See all results for &ldquo;{searchQuery}&rdquo;
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right actions */}
