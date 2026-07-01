@@ -9,7 +9,6 @@ import { eq, and } from 'drizzle-orm';
 
 const schema = z.object({
   orderNumber: z.string().min(1),
-  channel: z.enum(['card', 'momo']).default('card'),
 });
 
 export async function POST(request: NextRequest) {
@@ -23,23 +22,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.errors }, { status: 400 });
     }
 
-    const { orderNumber, channel } = parsed.data;
+    const { orderNumber } = parsed.data;
     const order = await orderService.getOrderByNumber(orderNumber);
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     if (order.status !== 'pending_payment') {
       return NextResponse.json({ error: 'Order is not pending payment' }, { status: 400 });
     }
 
-    // MoMo requires XAF — convert from USD using configured rate
-    const usdAmount = Number(order.totalAmount);
-    let amount = usdAmount;
-    let currencyCode = order.currency || 'USD';
-
-    if (channel === 'momo') {
-      const rate = Number(process.env.TRANZAK_USD_TO_XAF_RATE || '620');
-      amount = Math.round(usdAmount * rate);
-      currencyCode = 'XAF';
-    }
+    // Always convert USD → XAF so TranZak shows both Card and MoMo options
+    const rate = Number(process.env.TRANZAK_USD_TO_XAF_RATE || '620');
+    const amount = Math.round(Number(order.totalAmount) * rate);
+    const currencyCode = 'XAF';
 
     // Prefer VERCEL_URL (current deployment) over NEXT_PUBLIC_APP_URL (may point to production)
     const appUrl = process.env.VERCEL_URL
