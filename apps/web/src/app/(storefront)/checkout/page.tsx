@@ -140,7 +140,7 @@ export default function CheckoutPage() {
   const [copiedMethod, setCopiedMethod] = useState<string | null>(null);
   const [claimingPaid, setClaimingPaid] = useState(false);
   const [claimedPaid, setClaimedPaid] = useState(false);
-  const [initiatingTranzak, setInitiatingTranzak] = useState(false);
+  const [initiatingTranzak, setInitiatingTranzak] = useState<'card' | 'momo' | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<{ id: string; label: string | null; recipientName: string | null; addressLine1: string; addressLine2: string | null; city: string; state: string; zipCode: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id: string; method: string; label: string; details: string; instructions: string | null }[]>([]);
 
@@ -574,44 +574,52 @@ export default function CheckoutPage() {
               <p className="text-xs text-muted-foreground">Visa / Mastercard · Mobile Money</p>
             </div>
           </div>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                Pay securely online — no need to send manually. Your order is confirmed automatically once payment succeeds.
-              </p>
+          <CardContent className="p-5 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Pay securely online — your order is confirmed automatically once payment succeeds.
+            </p>
+            <div className="flex gap-3">
+              {/* Card button */}
+              {(["card", "momo"] as const).map((ch) => {
+                const isLoading = initiatingTranzak === ch;
+                const isDisabled = initiatingTranzak !== null;
+                const label = ch === "card" ? "Pay with Card" : "Pay with MoMo";
+                const icon = ch === "card" ? <CreditCard className="mr-1.5 h-3.5 w-3.5" /> : <Zap className="mr-1.5 h-3.5 w-3.5 text-[#7371FC]" />;
+                return (
+                  <Button
+                    key={ch}
+                    size="sm"
+                    variant={ch === "card" ? "default" : "outline"}
+                    disabled={isDisabled}
+                    className="flex-1"
+                    onClick={async () => {
+                      if (!orderNumber) return;
+                      setInitiatingTranzak(ch);
+                      try {
+                        const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+                        const res = await fetch(`${API_URL}/api/payments/tranzak/initiate`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ orderNumber, channel: ch }),
+                        });
+                        const json = await res.json();
+                        if (json.data?.paymentAuthUrl) {
+                          window.location.href = json.data.paymentAuthUrl;
+                        } else {
+                          toast.error("Could not start payment — please try again.");
+                        }
+                      } catch {
+                        toast.error("Network error — please try again.");
+                      } finally {
+                        setInitiatingTranzak(null);
+                      }
+                    }}
+                  >
+                    {isLoading ? "Redirecting…" : <>{icon}{label}</>}
+                  </Button>
+                );
+              })}
             </div>
-            <Button
-              size="sm"
-              disabled={initiatingTranzak}
-              onClick={async () => {
-                if (!orderNumber) return;
-                setInitiatingTranzak(true);
-                try {
-                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
-                  const res = await fetch(`${API_URL}/api/payments/tranzak/initiate`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ orderNumber }),
-                  });
-                  const json = await res.json();
-                  if (json.data?.paymentAuthUrl) {
-                    window.location.href = json.data.paymentAuthUrl;
-                  } else {
-                    toast.error("Could not start TranZak payment — please try again.");
-                  }
-                } catch {
-                  toast.error("Network error — please try again.");
-                } finally {
-                  setInitiatingTranzak(false);
-                }
-              }}
-            >
-              {initiatingTranzak ? (
-                "Redirecting…"
-              ) : (
-                <><Zap className="mr-1.5 h-3.5 w-3.5 text-[#7371FC]" /> Pay with TranZak</>
-              )}
-            </Button>
           </CardContent>
         </Card>
 
