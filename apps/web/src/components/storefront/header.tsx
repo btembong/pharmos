@@ -7,7 +7,7 @@ import {
   Search, Menu, FlaskConical, Package, User, ShoppingCart,
   Pill, Leaf, HeartPulse, BriefcaseMedical, Stethoscope,
   ChevronDown, Minus, Plus, Trash2, ShieldCheck, Syringe, Award,
-  ArrowRight, X,
+  ArrowRight, X, Truck, MessageCircle, RotateCcw, ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
@@ -57,6 +57,9 @@ export function StorefrontHeader() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState<{ id: string; name: string; slug: string; strength: string | null; prices: { amount: string }[]; images: { url: string; isPrimary: boolean }[] | null }[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [mobileQuery, setMobileQuery] = useState("");
+  const [mobileResults, setMobileResults] = useState<typeof searchResults>([]);
+  const [mobileLoading, setMobileLoading] = useState(false);
   const [promoIdx, setPromoIdx] = useState(0);
   const [megaOpen, setMegaOpen] = useState(false);
   const [megaHover, setMegaHover] = useState(0);
@@ -104,6 +107,21 @@ export function StorefrontHeader() {
     const t = setTimeout(() => fetchSearch(searchQuery), 280);
     return () => clearTimeout(t);
   }, [searchQuery, fetchSearch]);
+
+  // Mobile live search
+  useEffect(() => {
+    if (mobileQuery.trim().length < 2) { setMobileResults([]); return; }
+    setMobileLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_URL_SEARCH}/api/products?search=${encodeURIComponent(mobileQuery)}&limit=8`);
+        const data = await res.json();
+        setMobileResults(data.data || []);
+      } catch { setMobileResults([]); }
+      finally { setMobileLoading(false); }
+    }, 280);
+    return () => clearTimeout(t);
+  }, [mobileQuery, API_URL_SEARCH]);
 
   // Close on outside click / Escape
   useEffect(() => {
@@ -156,28 +174,107 @@ export function StorefrontHeader() {
               <img src="/Logo.png" alt="Pharmos" className="h-10 w-auto" />
             </div>
 
-            {/* Mobile search — prominent */}
+            {/* Mobile search — live results */}
             <div className="px-4 pt-4">
               <form
                 action="/products"
                 method="get"
                 className="relative flex items-center"
               >
-                <Search className="absolute left-3.5 h-4 w-4 text-muted-foreground/60" />
+                <Search className={`absolute left-3.5 h-4 w-4 transition-colors ${mobileQuery ? "text-accent" : "text-muted-foreground/60"}`} />
                 <input
                   type="text"
                   name="search"
-                  placeholder="Search products..."
+                  placeholder="Search products, brands..."
+                  value={mobileQuery}
+                  onChange={(e) => setMobileQuery(e.target.value)}
                   className="h-12 w-full rounded-xl border border-input bg-white pl-10 pr-20 text-sm outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  autoComplete="off"
                 />
+                {mobileQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => { setMobileQuery(""); setMobileResults([]); }}
+                    className="absolute right-[72px] flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/50 hover:bg-muted"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
                 <Button
                   type="submit"
                   size="sm"
                   className="absolute right-1.5 rounded-lg bg-accent px-4 text-xs text-white hover:bg-accent/90"
                 >
-                  Search
+                  Go
                 </Button>
               </form>
+
+              {/* Inline results */}
+              {mobileQuery.trim().length >= 2 && (
+                <div className="mt-2 overflow-hidden rounded-xl border bg-white shadow-md">
+                  {mobileLoading ? (
+                    <div className="flex items-center gap-2.5 px-4 py-3 text-sm text-muted-foreground">
+                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                      Searching...
+                    </div>
+                  ) : mobileResults.length === 0 ? (
+                    <p className="px-4 py-3 text-sm text-muted-foreground">No results for &ldquo;{mobileQuery}&rdquo;</p>
+                  ) : (
+                    <>
+                      {mobileResults.map((product) => {
+                        const img = product.images?.find((i) => i.isPrimary)?.url ?? product.images?.[0]?.url;
+                        const price = product.prices?.[0]?.amount;
+                        return (
+                          <Link
+                            key={product.id}
+                            href={`/products/${product.slug}`}
+                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50 active:bg-muted"
+                          >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-secondary/30">
+                              {img ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={img} alt={product.name} className="h-full w-full object-cover" />
+                              ) : (
+                                <Package className="h-4 w-4 text-muted-foreground/30" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-semibold">{product.name}</p>
+                              {product.strength && <p className="text-[11px] text-muted-foreground">{product.strength}</p>}
+                            </div>
+                            {price && <span className="shrink-0 text-sm font-bold text-accent">${Number(price).toFixed(2)}</span>}
+                          </Link>
+                        );
+                      })}
+                      <Link
+                        href={`/products?search=${encodeURIComponent(mobileQuery)}`}
+                        className="flex items-center gap-1.5 border-t px-4 py-2.5 text-xs font-medium text-accent"
+                      >
+                        <Search className="h-3 w-3" />
+                        All results for &ldquo;{mobileQuery}&rdquo;
+                        <ArrowRight className="h-3 w-3 ml-auto" />
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Empty state — popular searches */}
+              {!mobileQuery && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["BPC-157", "Ibuprofen", "Vitamin D", "Omega-3"].map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => setMobileQuery(term)}
+                      className="flex items-center gap-1 rounded-full border bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-accent/40 hover:text-accent"
+                    >
+                      <Search className="h-2.5 w-2.5" />
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Cart summary strip */}
@@ -203,98 +300,100 @@ export function StorefrontHeader() {
               </Link>
             </div>
 
-            {/* Shop section */}
-            <div className="mt-4 flex-1 px-4">
-              <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Shop</p>
-              <nav className="mt-2 flex flex-col gap-0.5">
-                <Link href="/products" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-primary transition-colors hover:bg-muted active:bg-muted">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8">
-                    <Package className="h-4 w-4 text-primary" />
-                  </div>
-                  Shop All Products
-                </Link>
+            {/* Categories grid */}
+            <div className="mt-5 flex-1 px-4">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Categories</p>
+                <Link href="/products" className="text-[11px] font-medium text-accent">See all →</Link>
+              </div>
+              <div className="mt-2.5 grid grid-cols-2 gap-2">
                 {categories.map((cat) => {
                   const Icon = ICON_MAP[cat.iconName || ""] || ShieldCheck;
-                  const bgColor = cat.bgColor || "bg-muted";
+                  const imgUrl = cat.megaMenuImageUrl || cat.heroImageUrl;
+                  const bgColor = cat.bgColor || "bg-[#7371FC]";
                   return (
                     <Link
                       key={cat.slug}
                       href={`/products/category/${cat.slug}`}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted active:bg-muted"
+                      className="group relative overflow-hidden rounded-xl"
                     >
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${bgColor}/15`}>
-                        <Icon className={`h-4 w-4 ${cat.color || "text-muted-foreground"}`} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-primary">{cat.name}</p>
-                        {cat.description && (
-                          <p className="truncate text-[11px] text-muted-foreground">{cat.description}</p>
+                      <div className="relative h-20">
+                        {imgUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={imgUrl} alt={cat.name} className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105" />
+                        ) : (
+                          <div className={`flex h-full w-full items-center justify-center ${bgColor}`}>
+                            <Icon className="h-8 w-8 text-white/20" strokeWidth={1.5} />
+                          </div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <div className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-lg ${bgColor} shadow`}>
+                          <Icon className="h-3 w-3 text-white" />
+                        </div>
+                        <p className="absolute bottom-2 left-2 right-2 truncate text-[12px] font-bold text-white">
+                          {cat.name}
+                        </p>
                       </div>
                     </Link>
                   );
                 })}
-              </nav>
+              </div>
 
               {/* Help section */}
-              <div className="mt-4 border-t pt-4">
-                <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Help</p>
-                <nav className="mt-2 flex flex-col gap-0.5">
-                  <Link href="/account/orders" className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted active:bg-muted">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                      <Package className="h-4 w-4 text-accent" />
-                    </div>
-                    <span className="text-sm font-medium text-primary">Track Order</span>
-                  </Link>
-                  <Link href="/faq" className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted active:bg-muted">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                      <Search className="h-4 w-4 text-accent" />
-                    </div>
-                    <span className="text-sm font-medium text-primary">FAQ</span>
-                  </Link>
-                </nav>
+              <div className="mt-5 border-t pt-4">
+                <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Help & Support</p>
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
+                  {[
+                    { href: "/track", icon: Truck, label: "Track Order" },
+                    { href: "/faq", icon: MessageCircle, label: "FAQ" },
+                    { href: "/returns", icon: RotateCcw, label: "Returns" },
+                    { href: "/account/orders", icon: ClipboardList, label: "My Orders" },
+                  ].map(({ href, icon: Icon, label }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-muted active:bg-muted"
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-accent" />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
               </div>
 
               {/* Account section */}
-              <div className="mt-4 border-t pt-4">
-                <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Account</p>
-                <nav className="mt-2 flex flex-col gap-0.5">
-                  {isSignedIn ? (
-                    <>
-                      <Link
-                        href="/account"
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted active:bg-muted"
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8">
-                          <User className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm font-medium text-primary">My Account</span>
-                      </Link>
-                      <Link
-                        href="/account/orders"
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted active:bg-muted"
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8">
-                          <Package className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm font-medium text-primary">My Orders</span>
-                      </Link>
-                    </>
-                  ) : (
-                    <SignInButton mode="modal">
-                      <Button className="mt-1 w-full rounded-xl bg-accent py-3 text-sm text-white hover:bg-accent/90">
-                        Sign In
-                      </Button>
-                    </SignInButton>
-                  )}
-                </nav>
+              <div className="mt-4 border-t pt-4 pb-4">
+                {isSignedIn ? (
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Link
+                      href="/account"
+                      className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-muted"
+                    >
+                      <User className="h-4 w-4 shrink-0 text-accent" />
+                      My Account
+                    </Link>
+                    <Link
+                      href="/account/subscriptions"
+                      className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-muted"
+                    >
+                      <RotateCcw className="h-4 w-4 shrink-0 text-accent" />
+                      Subscriptions
+                    </Link>
+                  </div>
+                ) : (
+                  <SignInButton mode="modal">
+                    <Button className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white hover:bg-accent/90">
+                      Sign In to Your Account
+                    </Button>
+                  </SignInButton>
+                )}
               </div>
             </div>
 
-            {/* Bottom trust badge */}
-            <div className="mt-auto border-t px-5 py-4">
+            {/* Bottom trust bar */}
+            <div className="mt-auto border-t bg-muted/30 px-5 py-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-accent" />
+                <ShieldCheck className="h-4 w-4 shrink-0 text-accent" />
                 <span className="text-[11px] text-muted-foreground">Licensed US Supplier — COA with every order</span>
               </div>
             </div>
