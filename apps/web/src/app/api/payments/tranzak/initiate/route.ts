@@ -29,10 +29,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order is not pending payment' }, { status: 400 });
     }
 
-    // Always convert USD → XAF so TranZak shows both Card and MoMo options
-    const rate = Number(process.env.TRANZAK_USD_TO_XAF_RATE || '620');
-    const amount = Math.round(Number(order.totalAmount) * rate);
-    const currencyCode = 'XAF';
+    const amount = Number(order.totalAmount);
+    const currencyCode = 'USD';
 
     // Prefer VERCEL_URL (current deployment) over NEXT_PUBLIC_APP_URL (may point to production)
     const appUrl = process.env.VERCEL_URL
@@ -59,7 +57,7 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
         customerId: order.customerId,
         amount: order.totalAmount,
-        currency: currencyCode,
+        currency: 'USD',
         status: 'pending',
         paymentMethod: 'tranzak',
         providerRef: result.requestId,
