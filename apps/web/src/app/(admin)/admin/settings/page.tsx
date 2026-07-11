@@ -113,6 +113,7 @@ export default function AdminSettingsPage() {
       }
     } catch { toast.error("Network error"); }
     finally { setSavingMethod(false); }
+  }
 
   // ── Delete payment method ──
   async function deleteMethod(id: string) {
@@ -403,5 +404,4 @@ export default function AdminSettingsPage() {
       )}
     </div>
   );
-}
 }
