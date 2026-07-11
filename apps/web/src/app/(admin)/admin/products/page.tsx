@@ -664,7 +664,7 @@ export default function AdminProductsPage() {
                     {/* Actions */}
                     <TableCell>
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-secondary hover:text-foreground group-hover:opacity-100">
+                        <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-secondary hover:text-foreground">
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
