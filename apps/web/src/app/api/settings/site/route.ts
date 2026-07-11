@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { siteSettings } from '@pharmaflow/db/schema';
-import { eq } from 'drizzle-orm';
-import { requireRole } from '@/lib/auth';
+import { requireRole, isAuthError } from '@/lib/auth';
 
 // GET /api/settings/site — public, returns all settings as { key: value }
 export async function GET() {
@@ -18,8 +17,8 @@ export async function GET() {
 
 // PUT /api/settings/site — admin only, upserts key-value pairs
 export async function PUT(request: NextRequest) {
-  const authError = await requireRole(request, ['super_admin', 'inventory_manager']);
-  if (authError) return authError;
+  const auth = await requireRole('super_admin', 'inventory_manager');
+  if (isAuthError(auth)) return auth;
 
   try {
     const body: Record<string, string | null> = await request.json();
