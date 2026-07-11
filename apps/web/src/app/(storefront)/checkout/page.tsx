@@ -27,6 +27,7 @@ import {
   Truck,
   Zap,
   UserPlus,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -1122,23 +1123,36 @@ export default function CheckoutPage() {
         <div>
           <div className="sticky top-24 space-y-4">
             <Card>
-              <CardContent className="p-5">
+              <div className="flex items-center gap-2 border-b px-5 py-3">
+                <ShoppingBag className="h-4 w-4 text-accent" />
                 <h2 className="font-bold text-primary">Order Summary</h2>
-                <Separator className="my-3" />
-
-                <ul className="space-y-2 text-sm">
+                <span className="ml-auto rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
+                  {items.reduce((s, i) => s + i.quantity, 0)} item{items.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <CardContent className="p-5">
+                <ul className="space-y-3">
                   {items.map((item) => (
-                    <li key={item.productId} className="flex justify-between gap-2">
-                      <span className="line-clamp-2 flex-1 text-muted-foreground">
-                        {item.name}{" "}
-                        <span className="font-medium text-foreground">×{item.quantity}</span>
-                      </span>
-                      <span className="shrink-0">${fmt(item.price * item.quantity)}</span>
+                    <li key={item.productId} className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-secondary/30">
+                        {item.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <Package className="h-5 w-5 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-1 text-sm font-medium">{item.name}</p>
+                        {item.strength && <p className="text-[11px] text-muted-foreground">{item.strength}</p>}
+                        <p className="text-[11px] text-muted-foreground">Qty: {item.quantity}</p>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold">${fmt(item.price * item.quantity)}</span>
                     </li>
                   ))}
                 </ul>
 
-                <Separator className="my-3" />
+                <Separator className="my-4" />
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-muted-foreground">
@@ -1151,30 +1165,40 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className={shippingFee === 0 ? "font-medium text-accent" : ""}>
+                    <span className={shippingFee === 0 ? "font-semibold text-accent" : ""}>
                       {shippingFee === 0 ? "FREE" : `$${fmt(shippingFee)}`}
                     </span>
                   </div>
                   {baseShippingFee > 0 && deliveryMethod === "standard" && (
-                    <p className="text-xs text-muted-foreground">
-                      Add ${fmt(99 - subtotal)} more for free standard shipping
+                    <p className="text-xs text-accent/80">
+                      Add ${fmt(99 - subtotal)} more for free shipping
                     </p>
                   )}
                 </div>
 
-                <Separator className="my-3" />
+                <Separator className="my-4" />
 
                 <div className="flex justify-between text-base font-bold">
                   <span>Total</span>
-                  <span>${fmt(total)}</span>
+                  <span className="text-accent">${fmt(total)}</span>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="rounded-xl border bg-muted/20 p-4 text-xs text-muted-foreground space-y-2">
-              <p>🔒 Secure, encrypted checkout</p>
-              <p>📦 Ships within 48h of payment confirmation</p>
-              <p>✉️ support@pharmos.com for help</p>
+            {/* Trust badges — Lucide icons, no emoji */}
+            <div className="rounded-xl border bg-muted/20 p-4 space-y-2.5">
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>Secure, encrypted checkout</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <Package className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>Ships within 48h of payment confirmation</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <Mail className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>support@pharmos.com for help</span>
+              </div>
             </div>
           </div>
         </div>
