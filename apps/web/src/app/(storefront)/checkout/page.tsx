@@ -26,7 +26,7 @@ import {
   Check,
   Truck,
   Zap,
-  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -246,40 +246,19 @@ export default function CheckoutPage() {
     }
   }
 
+  const isGuest = isLoaded && !isSignedIn;
+
   // Redirect empty cart (unless already confirmed)
   if (items.length === 0 && step !== "confirmed") {
     router.push("/cart");
     return null;
   }
 
-  // ─── Auth gate ────────────────────────────────────────────────────────────
-
+  // Wait for Clerk to load (fast — avoids flash)
   if (!isLoaded) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/60">
-          <LogIn className="h-7 w-7 text-accent" />
-        </div>
-        <h1 className="text-xl font-bold text-primary">Sign in to checkout</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          You need an account to place an order. It only takes a moment.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button onClick={() => router.push("/sign-in?redirect_url=/checkout")}>
-            Sign In
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/sign-up?redirect_url=/checkout")}>
-            Create Account
-          </Button>
-        </div>
       </div>
     );
   }
@@ -302,7 +281,7 @@ export default function CheckoutPage() {
     const shipping = shippingForm.getValues();
 
     try {
-      const token = await getToken();
+      const token = isSignedIn ? await getToken() : null;
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
       // Drug interaction check — run before placing order
@@ -653,6 +632,28 @@ export default function CheckoutPage() {
           </CardContent>
         </Card>
 
+        {/* Guest — soft account creation prompt */}
+        {isGuest && (
+          <div className="mt-4 flex items-start gap-4 rounded-xl border border-accent/20 bg-accent/5 p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10">
+              <UserPlus className="h-4 w-4 text-accent" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-primary">Save your details for next time</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Create a free account to track orders, save addresses, and check out faster.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="shrink-0 bg-accent text-white hover:bg-accent/90"
+              onClick={() => router.push(`/sign-up?redirect_url=/account/orders`)}
+            >
+              Create Account
+            </Button>
+          </div>
+        )}
+
         {/* CTAs */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button
@@ -698,6 +699,20 @@ export default function CheckoutPage() {
                   We'll send your order confirmation and shipping updates here
                 </p>
               </div>
+              {/* Guest soft nudge */}
+              {isGuest && (
+                <div className="flex items-center justify-between border-b bg-muted/30 px-6 py-3">
+                  <p className="text-xs text-muted-foreground">Have an account? Sign in to auto-fill your details.</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => router.push(`/sign-in?redirect_url=/checkout`)}
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              )}
               <CardContent className="p-6">
                 <form
                   onSubmit={contactForm.handleSubmit(onContactValid)}

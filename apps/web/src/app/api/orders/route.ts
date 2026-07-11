@@ -74,11 +74,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/orders — create order
+// POST /api/orders — create order (supports both authenticated and guest checkout)
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Guest checkout allowed — userId may be null
 
     const body = await request.json();
     const parsed = createOrderSchema.safeParse(body);
@@ -88,27 +88,40 @@ export async function POST(request: NextRequest) {
 
     const { items, shippingAddress, customerEmail, customerPhone, ...orderData } = parsed.data;
 
-    // Resolve customerId
+    if (!customerEmail) {
+      return NextResponse.json({ error: 'Email is required to place an order' }, { status: 400 });
+    }
+
+    // Resolve customerId — find or create customer record from email
     let customerId: string | undefined = orderData.customerId;
 
-    if (!customerId && userId) {
-      const [existing] = await db.select({ id: customers.id }).from(customers)
-        .where(eq(customers.clerkUserId, userId)).limit(1);
+    if (!customerId) {
+      if (userId) {
+        // Authenticated: try by clerkUserId first
+        const [byClerk] = await db.select({ id: customers.id }).from(customers)
+          .where(eq(customers.clerkUserId, userId)).limit(1);
+        if (byClerk) {
+          customerId = byClerk.id;
+        }
+      }
 
-      if (existing) {
-        customerId = existing.id;
-      } else if (customerEmail) {
+      if (!customerId && customerEmail) {
+        // Try by email (covers both guest and auth without Clerk record)
         const [byEmail] = await db.select({ id: customers.id }).from(customers)
           .where(eq(customers.email, customerEmail)).limit(1);
 
         if (byEmail) {
           customerId = byEmail.id;
-          await db.update(customers)
-            .set({ clerkUserId: userId, phone: customerPhone ?? undefined, updatedAt: new Date() })
-            .where(eq(customers.id, byEmail.id));
+          // Link to Clerk account if now authenticated
+          if (userId) {
+            await db.update(customers)
+              .set({ clerkUserId: userId, phone: customerPhone ?? undefined, updatedAt: new Date() })
+              .where(eq(customers.id, byEmail.id));
+          }
         } else {
+          // Create new customer record (guest or new auth user)
           const [created] = await db.insert(customers)
-            .values({ clerkUserId: userId, email: customerEmail, phone: customerPhone })
+            .values({ clerkUserId: userId ?? undefined, email: customerEmail, phone: customerPhone })
             .returning({ id: customers.id });
           customerId = created.id;
         }
@@ -155,7 +168,7 @@ export async function POST(request: NextRequest) {
     }
 
     await writeAuditLog({
-      actorId: userId,
+      actorId: userId ?? customerEmail ?? 'guest',
       actorType: 'customer',
       action: 'order.created',
       entityType: 'order',

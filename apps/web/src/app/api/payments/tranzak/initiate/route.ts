@@ -13,8 +13,7 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Guest checkout allowed — no auth required to initiate payment for an existing order
 
     const body = await request.json();
     const parsed = schema.safeParse(body);
