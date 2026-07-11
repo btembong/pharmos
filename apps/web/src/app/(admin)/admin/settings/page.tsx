@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus, Pencil, Check, X, Loader2, Settings,
+  Plus, Pencil, Check, X, Loader2, Settings, Trash2,
   MessageCircle, Tag, Phone, Info,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -113,6 +113,23 @@ export default function AdminSettingsPage() {
       }
     } catch { toast.error("Network error"); }
     finally { setSavingMethod(false); }
+
+  // ── Delete payment method ──
+  async function deleteMethod(id: string) {
+    if (!confirm('Delete this payment method?')) return;
+    try {
+      const token = await getToken();
+      const res = await fetch(API_URL + '/api/payments/methods/' + id, {
+        method: 'DELETE',
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      if (res.ok) {
+        toast.success('Payment method deleted');
+        loadMethods();
+      } else {
+        toast.error('Failed to delete method');
+      }
+    } catch { toast.error('Network error'); }
   }
 
   // ── Save site settings ──
@@ -210,7 +227,7 @@ export default function AdminSettingsPage() {
                       <p className="text-sm text-muted-foreground">{m.details}</p>
                       {m.instructions && <p className="text-xs text-muted-foreground/70">{m.instructions}</p>}
                     </div>
-                    <Button size="sm" variant="ghost"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <div className="flex gap-1"><Button size="sm" variant="ghost"><Pencil className="h-3.5 w-3.5" /></Button><Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => deleteMethod(m.id)}><Trash2 className="h-3.5 w-3.5" /></Button></div>
                   </div>
                 ))}
               </div>
