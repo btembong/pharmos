@@ -319,7 +319,8 @@ export default function AdminSettingsPage() {
                 <Field label="Headline" settingKey="promo_headline" placeholder="Welcome! Here's 10% off your first order" />
                 <Field label="Subtext" settingKey="promo_subtext" placeholder="Use code PHARMOS10 at checkout. Valid for new customers only." />
                 <Field label="Discount Label" settingKey="promo_badge" placeholder="10% OFF" hint="Short label shown on the badge, e.g. '10% OFF' or 'FREE SHIPPING'" />
-                <Button size="sm" className="bg-accent text-white hover:bg-accent/90" disabled={savingSettings} onClick={() => saveSiteSettings(["promo_enabled", "promo_code", "promo_headline", "promo_subtext", "promo_badge"])}>
+                <Field label="Product Image URL" settingKey="promo_image_url" placeholder="https://..." hint="Optional product image shown beside the promo. Use a square or portrait image for best results." />
+                <Button size="sm" className="bg-accent text-white hover:bg-accent/90" disabled={savingSettings} onClick={() => saveSiteSettings(["promo_enabled", "promo_code", "promo_headline", "promo_subtext", "promo_badge", "promo_image_url"])}>
                   {savingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />} Save Promo Settings
                 </Button>
               </>
