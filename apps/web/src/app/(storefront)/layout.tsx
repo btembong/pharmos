@@ -5,6 +5,8 @@ import { CartProvider } from "@/lib/cart-context";
 import { CompareProvider } from "@/lib/compare-context";
 import { CompareBar } from "@/components/storefront/compare-bar";
 import { StickyCartBar } from "@/components/storefront/sticky-cart-bar";
+import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
+import { PromoPopup } from "@/components/storefront/promo-popup";
 import { Toaster } from "sonner";
 
 export default function StorefrontLayout({
@@ -23,6 +25,8 @@ export default function StorefrontLayout({
       <CompareBar />
       <StickyCartBar />
       <AIChatbot />
+      <WhatsAppButton />
+      <PromoPopup />
       <Toaster
         position="bottom-right"
         toastOptions={{

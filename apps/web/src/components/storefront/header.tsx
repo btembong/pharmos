@@ -147,7 +147,7 @@ export function StorefrontHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-white/80 shadow-sm backdrop-blur-md">
       {/* Top promo bar — rotating */}
-      <div className="bg-primary px-4 py-1.5 text-center text-xs font-medium tracking-wide text-primary-foreground overflow-hidden">
+      <div className="bg-[#7371FC] px-4 py-1.5 text-center text-xs font-medium tracking-wide text-white overflow-hidden">
         <div
           key={promoIdx}
           className="animate-in fade-in slide-in-from-bottom-2 duration-500"
