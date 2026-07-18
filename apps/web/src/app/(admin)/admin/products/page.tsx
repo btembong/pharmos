@@ -344,17 +344,23 @@ export default function AdminProductsPage() {
       const method = editingId ? "PUT" : "POST";
       const body: Record<string, unknown> = {
         name: form.name, slug: form.slug,
-        genericName: form.genericName || undefined, brandName: form.brandName || undefined,
-        dosageForm: form.dosageForm || undefined, strength: form.strength || undefined,
-        packSize: form.packSize || undefined, manufacturer: form.manufacturer || undefined,
-        shortDescription: form.shortDescription || undefined, description: form.description || undefined,
-        requiresPrescription: form.requiresPrescription, isResearchCompound: form.isResearchCompound,
+        genericName: form.genericName || null,
+        brandName: form.brandName || null,
+        dosageForm: form.dosageForm || null,
+        strength: form.strength || null,
+        packSize: form.packSize || null,
+        manufacturer: form.manufacturer || null,
+        shortDescription: form.shortDescription || null,
+        description: form.description || null,
+        requiresPrescription: form.requiresPrescription,
+        isResearchCompound: form.isResearchCompound,
         isFeatured: form.isFeatured,
-        tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-        categoryId: form.categoryId || undefined,
+        tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+        categoryId: form.categoryId || null,
+        // Always include image so updates are reflected
+        images: form.imageUrl ? [{ url: form.imageUrl, alt: form.name, isPrimary: true }] : [],
       };
       if (!editingId && form.price) body.price = form.price;
-      if (form.imageUrl) body.images = [{ url: form.imageUrl, alt: form.name, isPrimary: true }];
 
       const res = await fetch(url, {
         method, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
