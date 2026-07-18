@@ -35,6 +35,7 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
+  Copy,
   FlaskConical,
   Upload,
   Loader2,
@@ -63,6 +64,10 @@ interface Product {
   isControlledSubstance: boolean;
   isFeatured: boolean;
   isActive: boolean;
+  shortDescription: string | null;
+  description: string | null;
+  brandName: string | null;
+  isResearchCompound: boolean;
   tags: string[] | null;
   images: { url: string; alt: string; isPrimary: boolean }[] | null;
   categoryId: string | null;
@@ -120,6 +125,7 @@ export default function AdminProductsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [uploading, setUploading] = useState(false);
 
@@ -280,27 +286,52 @@ export default function AdminProductsPage() {
 
   function openCreate() {
     setEditingId(null);
+    setDuplicating(false);
     setForm({ ...EMPTY_FORM });
     setDialogOpen(true);
   }
 
-  function openEdit(product: Product) {
-    const price = product.prices?.find((p) => p.priceType === "b2c");
-    const img = getImage(product) ?? "";
+  async function openEdit(product: Product) {
     setEditingId(product.id);
-    setForm({
-      name: product.name, slug: product.slug,
-      genericName: product.genericName ?? "", brandName: "",
-      dosageForm: product.dosageForm ?? "", strength: product.strength ?? "",
-      packSize: product.packSize ?? "", manufacturer: product.manufacturer ?? "",
-      shortDescription: "", description: "",
-      price: price ? String(price.amount) : "", imageUrl: img,
-      requiresPrescription: product.requiresPrescription,
-      isResearchCompound: false, isFeatured: product.isFeatured ?? false,
-      tags: (product.tags ?? []).join(", "),
-      categoryId: product.categoryId ?? product.category?.id ?? "",
-    });
     setDialogOpen(true);
+    // Fetch full product details to populate all fields including description/metadata
+    try {
+      const res = await fetch();
+      const data = res.ok ? await res.json() : null;
+      const p = data?.data ?? product;
+      const price = p.prices?.find((pr: {priceType:string;amount:string}) => pr.priceType === "b2c");
+      const img = p.images?.find((i: {isPrimary:boolean;url:string}) => i.isPrimary)?.url ?? p.images?.[0]?.url ?? "";
+      setForm({
+        name: p.name, slug: p.slug,
+        genericName: p.genericName ?? "", brandName: p.brandName ?? "",
+        dosageForm: p.dosageForm ?? "", strength: p.strength ?? "",
+        packSize: p.packSize ?? "", manufacturer: p.manufacturer ?? "",
+        shortDescription: p.shortDescription ?? "", description: p.description ?? "",
+        price: price ? String(price.amount) : "", imageUrl: img,
+        requiresPrescription: p.requiresPrescription ?? false,
+        isResearchCompound: p.isResearchCompound ?? false,
+        isFeatured: p.isFeatured ?? false,
+        tags: (p.tags ?? []).join(", "),
+        categoryId: p.categoryId ?? p.category?.id ?? "",
+      });
+    } catch {
+      // Fallback to list data
+      const price = product.prices?.find((pr) => pr.priceType === "b2c");
+      const img = getImage(product) ?? "";
+      setForm({
+        name: product.name, slug: product.slug,
+        genericName: product.genericName ?? "", brandName: product.brandName ?? "",
+        dosageForm: product.dosageForm ?? "", strength: product.strength ?? "",
+        packSize: product.packSize ?? "", manufacturer: product.manufacturer ?? "",
+        shortDescription: product.shortDescription ?? "", description: product.description ?? "",
+        price: price ? String(price.amount) : "", imageUrl: img,
+        requiresPrescription: product.requiresPrescription ?? false,
+        isResearchCompound: product.isResearchCompound ?? false,
+        isFeatured: product.isFeatured ?? false,
+        tags: (product.tags ?? []).join(", "),
+        categoryId: product.categoryId ?? product.category?.id ?? "",
+      });
+    }
   }
 
   async function handleSave() {
@@ -352,6 +383,38 @@ export default function AdminProductsPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function openDuplicate(product: Product) {
+    setEditingId(null);
+    setDuplicating(true);
+    setDialogOpen(true);
+    try {
+      const res = await fetch(API_URL + '/api/products/' + product.id);
+      const data = res.ok ? await res.json() : null;
+      const p = data?.data ?? product;
+      const price = p.prices?.find((pr) => pr.priceType === 'b2c');
+      const img = p.images?.find((i) => i.isPrimary)?.url ?? p.images?.[0]?.url ?? '';
+      setForm({
+        name: p.name + ' (Copy)',
+        slug: p.slug + '-copy',
+        genericName: p.genericName ?? '',
+        brandName: p.brandName ?? '',
+        dosageForm: p.dosageForm ?? '',
+        strength: p.strength ?? '',
+        packSize: p.packSize ?? '',
+        manufacturer: p.manufacturer ?? '',
+        shortDescription: p.shortDescription ?? '',
+        description: p.description ?? '',
+        price: price ? String(price.amount) : '',
+        imageUrl: img,
+        requiresPrescription: p.requiresPrescription ?? false,
+        isResearchCompound: p.isResearchCompound ?? false,
+        isFeatured: false,
+        tags: (p.tags ?? []).join(', '),
+        categoryId: p.categoryId ?? p.category?.id ?? '',
+      });
+    } catch { toast.error('Failed to load product data'); setDialogOpen(false); }
   }
 
   async function handleDelete(product: Product) {
@@ -671,6 +734,9 @@ export default function AdminProductsPage() {
                           <DropdownMenuItem onClick={() => openEdit(product)}>
                             <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openDuplicate(product)}>
+                            <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openPairings(product)}>
                             <Link2 className="mr-2 h-3.5 w-3.5" /> Bought Together
                           </DropdownMenuItem>
@@ -784,6 +850,9 @@ export default function AdminProductsPage() {
                       <DropdownMenuItem onClick={() => openEdit(product)}>
                         <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openDuplicate(product)}>
+                        <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openPairings(product)}>
                         <Link2 className="mr-2 h-3.5 w-3.5" /> Bought Together
                       </DropdownMenuItem>
@@ -808,10 +877,10 @@ export default function AdminProductsPage() {
       )}
 
       {/* ── Create / Edit Dialog ── */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingId(null); }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingId(null); setDuplicating(false); } }}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Product" : "Add New Product"}</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Product" : duplicating ? "Duplicate Product" : "Add New Product"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="grid gap-4 sm:grid-cols-2">
