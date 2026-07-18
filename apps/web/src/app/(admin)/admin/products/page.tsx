@@ -399,8 +399,8 @@ export default function AdminProductsPage() {
       const res = await fetch(API_URL + '/api/products/' + product.id);
       const data = res.ok ? await res.json() : null;
       const p = data?.data ?? product;
-      const price = p.prices?.find((pr) => pr.priceType === 'b2c');
-      const img = p.images?.find((i) => i.isPrimary)?.url ?? p.images?.[0]?.url ?? '';
+      const price = p.prices?.find((pr: {priceType:string;amount:string}) => pr.priceType === 'b2c');
+      const img = p.images?.find((i: {isPrimary:boolean;url:string}) => i.isPrimary)?.url ?? p.images?.[0]?.url ?? '';
       setForm({
         name: p.name + ' (Copy)',
         slug: p.slug + '-copy',
