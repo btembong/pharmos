@@ -296,7 +296,7 @@ export default function AdminProductsPage() {
     setDialogOpen(true);
     // Fetch full product details to populate all fields including description/metadata
     try {
-      const res = await fetch();
+      const res = await fetch(API_URL + "/api/products/" + product.id);
       const data = res.ok ? await res.json() : null;
       const p = data?.data ?? product;
       const price = p.prices?.find((pr: {priceType:string;amount:string}) => pr.priceType === "b2c");
