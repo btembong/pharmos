@@ -30,7 +30,7 @@ interface Product {
   prices?: { amount: number; priceType: string }[] | null;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
@@ -77,7 +77,7 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group w-56 shrink-0 sm:w-60"
+      className="group"
       onMouseEnter={handleHover}
     >
       <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
@@ -121,7 +121,7 @@ function ProductCard({ product }: { product: Product }) {
           {price && (
             <button
               onClick={handleAddToCart}
-              className="absolute bottom-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white shadow-lg opacity-0 transition-all duration-300 hover:bg-accent/90 hover:scale-110 group-hover:opacity-100"
+              className="absolute bottom-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-all duration-300 hover:bg-accent/90 hover:scale-110"
               aria-label="Add to cart"
             >
               <ShoppingCart className="h-4 w-4" />
@@ -161,8 +161,6 @@ function ProductCard({ product }: { product: Product }) {
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [paused, setPaused] = useState(false);
-
   useEffect(() => {
     fetch(`${API_URL}/api/products?isFeatured=true&limit=12`)
       .then((r) => r.json())
@@ -173,10 +171,10 @@ export function FeaturedProducts() {
 
   if (loading) {
     return (
-      <div className="flex gap-4 overflow-hidden">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="w-56 shrink-0 animate-pulse rounded-xl border bg-muted/20 sm:w-60">
-            <div className="aspect-[4/5] bg-muted" />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div key={i} className="animate-pulse rounded-xl border bg-muted/20">
+            <div className="aspect-[4/5] bg-muted rounded-t-xl" />
             <div className="space-y-2 p-4">
               <div className="h-3 w-20 rounded bg-muted" />
               <div className="h-4 w-32 rounded bg-muted" />
@@ -190,34 +188,11 @@ export function FeaturedProducts() {
 
   if (products.length === 0) return null;
 
-  // Duplicate for seamless loop
-  const items = [...products, ...products];
-  const duration = products.length * 4; // 4s per card
-
   return (
-    <div
-      className="relative overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      <div
-        className="flex gap-4"
-        style={{
-          animation: `marquee-scroll ${duration}s linear infinite`,
-          animationPlayState: paused ? "paused" : "running",
-        }}
-      >
-        {items.map((product, i) => (
-          <ProductCard key={`${product.id}-${i}`} product={product} />
-        ))}
-      </div>
-
-      <style jsx>{`
-        @keyframes marquee-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
     </div>
   );
 }

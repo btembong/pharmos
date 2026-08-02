@@ -157,7 +157,7 @@ export default function AccountOrdersPage() {
     async function fetchOrders() {
       try {
         const token = await getToken();
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
         const res = await fetch(`${API_URL}/api/orders/my`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });

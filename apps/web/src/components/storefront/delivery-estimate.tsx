@@ -29,7 +29,7 @@ interface DeliveryEstimateWidgetProps {
   subtotal?: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const ZIP_KEY = "pharmos_zip";
 
 function formatDate(iso: string): string {

@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 const ICON_OPTIONS = [
   "FlaskConical", "Pill", "Leaf", "Heart", "BriefcaseMedical",
@@ -166,6 +166,20 @@ export default function CategoriesPage() {
     setFaqs(cat.faqs ?? []);
     setTab("general");
     setDialogOpen(true);
+  }
+
+  async function deleteCategory(id: string, name: string) {
+    if (!confirm('Delete category "' + name + '"? This cannot be undone.')) return;
+    try {
+      const headers = await authHeaders();
+      const res = await fetch(API_URL + '/api/products/categories/' + id, { method: 'DELETE', headers });
+      if (res.ok) {
+        toast.success('Category deleted');
+        fetchCategories();
+      } else {
+        toast.error('Failed to delete category');
+      }
+    } catch { toast.error('Network error'); }
   }
 
   async function handleSave() {
@@ -319,9 +333,7 @@ export default function CategoriesPage() {
                     </div>
                   </div>
 
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(cat)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => openEdit(cat)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => deleteCategory(cat.id, cat.name)}><Trash2 className="h-4 w-4" /></Button></div>
                 </CardContent>
               </div>
             </Card>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Star, Quote, ShieldCheck } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface Review {
   id: string;

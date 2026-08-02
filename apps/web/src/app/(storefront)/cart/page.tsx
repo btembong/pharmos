@@ -13,7 +13,7 @@ import {
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const SAVED_KEY = "pharmos_saved_for_later";
 const FREE_SHIPPING_THRESHOLD = 35;
 

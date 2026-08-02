@@ -26,7 +26,8 @@ import {
   Check,
   Truck,
   Zap,
-  LogIn,
+  UserPlus,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -140,6 +141,7 @@ export default function CheckoutPage() {
   const [copiedMethod, setCopiedMethod] = useState<string | null>(null);
   const [claimingPaid, setClaimingPaid] = useState(false);
   const [claimedPaid, setClaimedPaid] = useState(false);
+  const [initiatingTranzak, setInitiatingTranzak] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<{ id: string; label: string | null; recipientName: string | null; addressLine1: string; addressLine2: string | null; city: string; state: string; zipCode: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id: string; method: string; label: string; details: string; instructions: string | null }[]>([]);
 
@@ -183,7 +185,7 @@ export default function CheckoutPage() {
     if (taxFetchRef.current === key) return;
     taxFetchRef.current = key;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     fetch(`${API_URL}/api/tax/calculate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -206,7 +208,7 @@ export default function CheckoutPage() {
 
   // Fetch active payment methods from API
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     fetch(`${API_URL}/api/payments/methods`)
       .then((r) => r.json())
       .then((d) => {
@@ -218,7 +220,7 @@ export default function CheckoutPage() {
   // Fetch saved addresses
   useEffect(() => {
     if (!isSignedIn) return;
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     getToken().then((token) => {
       if (!token) return;
       fetch(`${API_URL}/api/customers/me/addresses`, {
@@ -245,40 +247,19 @@ export default function CheckoutPage() {
     }
   }
 
+  const isGuest = isLoaded && !isSignedIn;
+
   // Redirect empty cart (unless already confirmed)
   if (items.length === 0 && step !== "confirmed") {
     router.push("/cart");
     return null;
   }
 
-  // ─── Auth gate ────────────────────────────────────────────────────────────
-
+  // Wait for Clerk to load (fast — avoids flash)
   if (!isLoaded) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/60">
-          <LogIn className="h-7 w-7 text-accent" />
-        </div>
-        <h1 className="text-xl font-bold text-primary">Sign in to checkout</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          You need an account to place an order. It only takes a moment.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button onClick={() => router.push("/sign-in?redirect_url=/checkout")}>
-            Sign In
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/sign-up?redirect_url=/checkout")}>
-            Create Account
-          </Button>
-        </div>
       </div>
     );
   }
@@ -301,8 +282,8 @@ export default function CheckoutPage() {
     const shipping = shippingForm.getValues();
 
     try {
-      const token = await getToken();
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const token = isSignedIn ? await getToken() : null;
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
       // Drug interaction check — run before placing order
       const genericNames = items
@@ -562,6 +543,54 @@ export default function CheckoutPage() {
           </CardContent>
         </Card>
 
+        {/* TranZak — pay by card or mobile money */}
+        <Card className="mt-4 overflow-hidden border-accent/20">
+          <div className="flex items-center gap-3 border-b border-accent/10 bg-accent/5 px-5 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10">
+              <CreditCard className="h-4 w-4 text-accent" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-accent">Pay instantly with TranZak</p>
+              <p className="text-xs text-muted-foreground">Visa / Mastercard · Mobile Money</p>
+            </div>
+          </div>
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                Pay securely online — no need to send manually. Your order is confirmed automatically once payment succeeds.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              disabled={initiatingTranzak}
+              onClick={async () => {
+                if (!orderNumber) return;
+                setInitiatingTranzak(true);
+                try {
+                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+                  const res = await fetch(`${API_URL}/api/payments/tranzak/initiate`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderNumber }),
+                  });
+                  const json = await res.json();
+                  if (json.data?.paymentAuthUrl) {
+                    window.location.href = json.data.paymentAuthUrl;
+                  } else {
+                    toast.error("Could not start TranZak payment — please try again.");
+                  }
+                } catch {
+                  toast.error("Network error — please try again.");
+                } finally {
+                  setInitiatingTranzak(false);
+                }
+              }}
+            >
+              {initiatingTranzak ? "Redirecting…" : <><Zap className="mr-1.5 h-3.5 w-3.5 text-[#7371FC]" /> Pay with TranZak</>}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* I Have Paid */}
         <Card className="mt-4">
           <CardContent className="flex items-center gap-4 p-5">
@@ -578,7 +607,7 @@ export default function CheckoutPage() {
               onClick={async () => {
                 setClaimingPaid(true);
                 try {
-                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+                  const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
                   const res = await fetch(`${API_URL}/api/orders/track/${orderNumber}/claim-paid`, { method: "POST" });
                   if (res.ok) {
                     setClaimedPaid(true);
@@ -603,6 +632,28 @@ export default function CheckoutPage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Guest — soft account creation prompt */}
+        {isGuest && (
+          <div className="mt-4 flex items-start gap-4 rounded-xl border border-accent/20 bg-accent/5 p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10">
+              <UserPlus className="h-4 w-4 text-accent" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-primary">Save your details for next time</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Create a free account to track orders, save addresses, and check out faster.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="shrink-0 bg-accent text-white hover:bg-accent/90"
+              onClick={() => router.push(`/sign-up?redirect_url=/account/orders`)}
+            >
+              Create Account
+            </Button>
+          </div>
+        )}
 
         {/* CTAs */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -649,6 +700,20 @@ export default function CheckoutPage() {
                   We'll send your order confirmation and shipping updates here
                 </p>
               </div>
+              {/* Guest soft nudge */}
+              {isGuest && (
+                <div className="flex items-center justify-between border-b bg-muted/30 px-6 py-3">
+                  <p className="text-xs text-muted-foreground">Have an account? Sign in to auto-fill your details.</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => router.push(`/sign-in?redirect_url=/checkout`)}
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              )}
               <CardContent className="p-6">
                 <form
                   onSubmit={contactForm.handleSubmit(onContactValid)}
@@ -1058,23 +1123,36 @@ export default function CheckoutPage() {
         <div>
           <div className="sticky top-24 space-y-4">
             <Card>
-              <CardContent className="p-5">
+              <div className="flex items-center gap-2 border-b px-5 py-3">
+                <ShoppingBag className="h-4 w-4 text-accent" />
                 <h2 className="font-bold text-primary">Order Summary</h2>
-                <Separator className="my-3" />
-
-                <ul className="space-y-2 text-sm">
+                <span className="ml-auto rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
+                  {items.reduce((s, i) => s + i.quantity, 0)} item{items.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <CardContent className="p-5">
+                <ul className="space-y-3">
                   {items.map((item) => (
-                    <li key={item.productId} className="flex justify-between gap-2">
-                      <span className="line-clamp-2 flex-1 text-muted-foreground">
-                        {item.name}{" "}
-                        <span className="font-medium text-foreground">×{item.quantity}</span>
-                      </span>
-                      <span className="shrink-0">${fmt(item.price * item.quantity)}</span>
+                    <li key={item.productId} className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-secondary/30">
+                        {item.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <Package className="h-5 w-5 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-1 text-sm font-medium">{item.name}</p>
+                        {item.strength && <p className="text-[11px] text-muted-foreground">{item.strength}</p>}
+                        <p className="text-[11px] text-muted-foreground">Qty: {item.quantity}</p>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold">${fmt(item.price * item.quantity)}</span>
                     </li>
                   ))}
                 </ul>
 
-                <Separator className="my-3" />
+                <Separator className="my-4" />
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-muted-foreground">
@@ -1087,30 +1165,40 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className={shippingFee === 0 ? "font-medium text-accent" : ""}>
+                    <span className={shippingFee === 0 ? "font-semibold text-accent" : ""}>
                       {shippingFee === 0 ? "FREE" : `$${fmt(shippingFee)}`}
                     </span>
                   </div>
                   {baseShippingFee > 0 && deliveryMethod === "standard" && (
-                    <p className="text-xs text-muted-foreground">
-                      Add ${fmt(99 - subtotal)} more for free standard shipping
+                    <p className="text-xs text-accent/80">
+                      Add ${fmt(99 - subtotal)} more for free shipping
                     </p>
                   )}
                 </div>
 
-                <Separator className="my-3" />
+                <Separator className="my-4" />
 
                 <div className="flex justify-between text-base font-bold">
                   <span>Total</span>
-                  <span>${fmt(total)}</span>
+                  <span className="text-accent">${fmt(total)}</span>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="rounded-xl border bg-muted/20 p-4 text-xs text-muted-foreground space-y-2">
-              <p>🔒 Secure, encrypted checkout</p>
-              <p>📦 Ships within 48h of payment confirmation</p>
-              <p>✉️ support@pharmos.com for help</p>
+            {/* Trust badges — Lucide icons, no emoji */}
+            <div className="rounded-xl border bg-muted/20 p-4 space-y-2.5">
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>Secure, encrypted checkout</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <Package className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>Ships within 48h of payment confirmation</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <Mail className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <span>support@pharmos.com for help</span>
+              </div>
             </div>
           </div>
         </div>

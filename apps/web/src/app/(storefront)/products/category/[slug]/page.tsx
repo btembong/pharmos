@@ -2,7 +2,6 @@ import { apiClient } from "@/lib/api-client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   FlaskConical,
@@ -324,7 +323,7 @@ export default async function CategoryPage({
   const content = (
     <div>
       {/* ── Hero ── */}
-      <section className={`relative overflow-hidden ${cfg.heroBg} px-4 py-10 sm:py-16 lg:py-20`}>
+      <section className={`relative overflow-hidden ${cfg.heroBg} px-4 py-20 sm:py-28 lg:py-36`}>
         {/* Background image from admin */}
         {category.heroImageUrl && (
           <>
@@ -338,7 +337,7 @@ export default async function CategoryPage({
           </>
         )}
         <div className="relative mx-auto max-w-7xl">
-          <nav className="mb-6 flex items-center gap-1.5 text-xs text-white/50">
+          <nav className="mb-8 flex items-center gap-1.5 text-xs text-white/50">
             <Link href="/" className="transition hover:text-white/80">Home</Link>
             <ChevronRight className="h-3 w-3" />
             <Link href="/products" className="transition hover:text-white/80">Products</Link>
@@ -346,51 +345,26 @@ export default async function CategoryPage({
             <span className="text-white/80">{category.name}</span>
           </nav>
 
-          <div className="flex items-start gap-3 sm:items-center sm:gap-4">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${cfg.badgeBg}/20`}>
-              <HeroIcon className={`h-5 w-5 sm:h-7 sm:w-7 ${cfg.heroAccent}`} />
+          <div className="flex items-start gap-4 sm:items-center sm:gap-6">
+            <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl sm:h-20 sm:w-20 sm:rounded-3xl ${cfg.badgeBg}/20`}>
+              <HeroIcon className={`h-7 w-7 sm:h-10 sm:w-10 ${cfg.heroAccent}`} />
             </div>
             <div>
-              <h1 className={`text-xl font-bold sm:text-3xl lg:text-4xl ${cfg.heroText}`}>
+              <h1 className={`text-3xl font-bold sm:text-5xl lg:text-6xl ${cfg.heroText}`}>
                 {cfg.headline}
               </h1>
-              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60 sm:mt-2 sm:text-sm">
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60 sm:mt-4 sm:text-base">
                 {cfg.subtext}
               </p>
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-3">
             <Badge className={`${cfg.badgeBg} text-white`}>
               {products.length} Product{products.length !== 1 ? "s" : ""}
             </Badge>
             <Badge className="bg-white/10 text-white">Free Shipping Over $99</Badge>
             <Badge className="bg-white/10 text-white">Licensed US Supplier</Badge>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Benefits ── */}
-      <section className={`${cfg.sectionBg} px-4 py-12`}>
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-center text-xl font-bold text-[#010128]">
-            Why Choose Our {category.name}
-          </h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {cfg.benefits.map((b) => {
-              const BIcon = b.icon;
-              return (
-                <Card key={b.title} className="border-0 shadow-sm">
-                  <CardContent className="p-5">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${cfg.benefitIconBg}`}>
-                      <BIcon className={`h-5 w-5 ${cfg.benefitIconColor}`} />
-                    </div>
-                    <h3 className="mt-3 text-sm font-semibold text-[#010128]">{b.title}</h3>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{b.desc}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
           </div>
         </div>
       </section>

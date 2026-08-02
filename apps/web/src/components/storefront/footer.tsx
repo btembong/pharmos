@@ -39,15 +39,16 @@ export function StorefrontFooter() {
             </ul>
           </div>
 
-          {/* Support */}
+          {/* Company */}
           <div>
-            <h3 className="font-semibold text-foreground">Support</h3>
+            <h3 className="font-semibold text-foreground">Company</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <Phone className="h-3.5 w-3.5" />
-                <span>support@pharmos.com</span>
-              </li>
-              <li>Mon – Fri, 9am – 6pm ET</li>
+              <li><Link href="/about" className="hover:text-foreground transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact Us</Link></li>
+              <li><Link href="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
+              <li><Link href="/returns" className="hover:text-foreground transition-colors">Returns Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Upload, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ClaimPaidButton({ orderNumber }: { orderNumber: string }) {
   const [loading, setLoading] = useState(false);
