@@ -119,6 +119,7 @@ export default function AdminProductsPage() {
   const [view, setView] = useState<"list" | "grid">("list");
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -145,7 +146,7 @@ export default function AdminProductsPage() {
   const loadProducts = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const params = new URLSearchParams({ limit: "50" });
+      const params = new URLSearchParams({ limit: "500" });
       if (search) params.set("search", search);
       const res = await fetch(`${API_URL}/api/products?${params}`);
       if (res.ok) {
