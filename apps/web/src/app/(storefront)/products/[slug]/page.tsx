@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -30,6 +31,38 @@ import { StickyMobileATC } from "@/components/storefront/sticky-mobile-atc";
 
 export const revalidate = 300;
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const { data: product } = await apiClient<{ data: ProductDetail }>(`/api/products/${slug}`);
+    const price = product.prices?.find((p) => p.priceType === "b2c");
+    const primaryImage = product.images?.find((i) => i.isPrimary) ?? product.images?.[0];
+
+    const title = product.metaTitle
+      ?? `Buy ${product.name}${product.strength ? ` ${product.strength}` : ""} | PharmaFlow`;
+    const description = product.metaDescription
+      ?? product.shortDescription
+      ?? `${product.name} — ${product.dosageForm ?? ""}${price ? ` from $${Number(price.amount).toFixed(2)}` : ""}. Licensed US pharmacy, fast nationwide shipping.`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        images: primaryImage ? [{ url: primaryImage.url, alt: primaryImage.alt }] : [],
+      },
+    };
+  } catch {
+    return { title: "Product | PharmaFlow" };
+  }
+}
+
 interface ProductDetail {
   id: string;
   name: string;
@@ -38,6 +71,8 @@ interface ProductDetail {
   brandName: string | null;
   description: string | null;
   shortDescription: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
   activeIngredients: { name: string; strength: string; unit: string }[] | null;
   dosageForm: string | null;
   strength: string | null;
@@ -97,8 +132,63 @@ export default async function ProductDetailPage({
     { icon: Package,      label: "Manufacturer",      value: product.manufacturer },
   ].filter((r) => r.value);
 
+  // JSON-LD Product Schema
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.shortDescription ?? product.description ?? undefined,
+    image: product.images?.map((i) => i.url) ?? undefined,
+    sku: product.ndcNumber ?? product.slug,
+    brand: product.brandName
+      ? { "@type": "Brand", name: product.brandName }
+      : { "@type": "Brand", name: "PharmaFlow" },
+    offers: price
+      ? {
+          "@type": "Offer",
+          priceCurrency: "USD",
+          price: Number(price.amount).toFixed(2),
+          availability: "https://schema.org/InStock",
+          url: `https://pharmospeptide.com/products/${product.slug}`,
+          seller: { "@type": "Organization", name: "PharmaFlow" },
+        }
+      : undefined,
+  };
+
+  // BreadcrumbList schema
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://pharmospeptide.com" },
+      { "@type": "ListItem", position: 2, name: "Products", item: "https://pharmospeptide.com/products" },
+      ...(product.category
+        ? [{
+            "@type": "ListItem",
+            position: 3,
+            name: product.category.name,
+            item: `https://pharmospeptide.com/products/category/${product.category.slug}`,
+          }]
+        : []),
+      {
+        "@type": "ListItem",
+        position: product.category ? 4 : 3,
+        name: product.name,
+        item: `https://pharmospeptide.com/products/${product.slug}`,
+      },
+    ],
+  };
+
   const content = (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
 
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-muted-foreground">

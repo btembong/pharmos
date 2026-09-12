@@ -7,7 +7,7 @@ import {
   Search, Menu, FlaskConical, Package, User, ShoppingCart,
   Pill, Leaf, HeartPulse, BriefcaseMedical, Stethoscope,
   ChevronDown, Minus, Plus, Trash2, ShieldCheck, Syringe, Award,
-  ArrowRight, X, Truck, MessageCircle, RotateCcw, ClipboardList,
+  ArrowRight, X, Truck, MessageCircle, RotateCcw, ClipboardList, BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
@@ -344,6 +344,7 @@ export function StorefrontHeader() {
                 <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Help & Support</p>
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
                   {[
+                    { href: "/blog", icon: BookOpen, label: "Health Blog" },
                     { href: "/track", icon: Truck, label: "Track Order" },
                     { href: "/faq", icon: MessageCircle, label: "FAQ" },
                     { href: "/returns", icon: RotateCcw, label: "Returns" },
@@ -726,6 +727,12 @@ export function StorefrontHeader() {
 
           {/* Right utility links */}
           <div className="flex shrink-0 items-center gap-0.5 border-l border-border/40 ml-3 pl-5">
+            <Link
+              href="/blog"
+              className="whitespace-nowrap px-3 py-3 text-sm font-medium text-accent transition-colors hover:text-accent/80"
+            >
+              Blog
+            </Link>
             <Link
               href="/faq"
               className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"

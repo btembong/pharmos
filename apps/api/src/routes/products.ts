@@ -677,4 +677,137 @@ router.delete(
   }
 );
 
+// ─── Admin Review Moderation ───────────────────────────────────────────────────
+
+const adminReviewQuerySchema = z.object({
+  status: z.enum(['pending', 'approved', 'all']).default('pending'),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+// GET /api/products/admin/reviews — list all reviews for moderation
+router.get(
+  '/admin/reviews',
+  requireAuth,
+  requireRole('super_admin', 'pharmacist'),
+  async (req, res) => {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
+      const status = req.query.status as string || 'all';
+      const offset = (page - 1) * limit;
+
+      const conditions: any[] = [isNull(productReviews.deletedAt)];
+      if (status === 'pending') conditions.push(eq(productReviews.isApproved, false));
+      if (status === 'approved') conditions.push(eq(productReviews.isApproved, true));
+
+      const { products: productsTable } = await import('@pharmaflow/db/schema');
+
+      const [rows, [{ total }]] = await Promise.all([
+        db
+          .select({
+            id: productReviews.id,
+            reviewerName: productReviews.reviewerName,
+            rating: productReviews.rating,
+            title: productReviews.title,
+            body: productReviews.body,
+            isVerifiedPurchase: productReviews.isVerifiedPurchase,
+            isApproved: productReviews.isApproved,
+            createdAt: productReviews.createdAt,
+            productId: productReviews.productId,
+            productName: productsTable.name,
+            productSlug: productsTable.slug,
+          })
+          .from(productReviews)
+          .innerJoin(productsTable, eq(productsTable.id, productReviews.productId))
+          .where(and(...conditions))
+          .orderBy(desc(productReviews.createdAt))
+          .limit(limit)
+          .offset(offset),
+        db
+          .select({ total: sql`count(*)::int` })
+          .from(productReviews)
+          .where(and(...conditions)),
+      ]);
+
+      res.json({ data: rows, meta: { total: Number(total), page, limit } });
+    } catch (error) {
+      console.error('Error listing admin reviews:', (error as Error).message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+// PUT /api/products/admin/reviews/:id/approve — approve a review
+router.put(
+  '/admin/reviews/:id/approve',
+  requireAuth,
+  requireRole('super_admin', 'pharmacist'),
+  async (req, res) => {
+    try {
+      const [review] = await db
+        .update(productReviews)
+        .set({ isApproved: true })
+        .where(and(eq(productReviews.id, req.params.id), isNull(productReviews.deletedAt)))
+        .returning();
+      if (!review) {
+        res.status(404).json({ error: 'Review not found' });
+        return;
+      }
+      res.json({ data: review });
+    } catch (error) {
+      console.error('Error approving review:', (error as Error).message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+// PUT /api/products/admin/reviews/:id/reject — reject (unapprove) a review
+router.put(
+  '/admin/reviews/:id/reject',
+  requireAuth,
+  requireRole('super_admin', 'pharmacist'),
+  async (req, res) => {
+    try {
+      const [review] = await db
+        .update(productReviews)
+        .set({ isApproved: false })
+        .where(and(eq(productReviews.id, req.params.id), isNull(productReviews.deletedAt)))
+        .returning();
+      if (!review) {
+        res.status(404).json({ error: 'Review not found' });
+        return;
+      }
+      res.json({ data: review });
+    } catch (error) {
+      console.error('Error rejecting review:', (error as Error).message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+// DELETE /api/products/admin/reviews/:id — soft delete a review
+router.delete(
+  '/admin/reviews/:id',
+  requireAuth,
+  requireRole('super_admin', 'pharmacist'),
+  async (req, res) => {
+    try {
+      const [review] = await db
+        .update(productReviews)
+        .set({ deletedAt: new Date() })
+        .where(and(eq(productReviews.id, req.params.id), isNull(productReviews.deletedAt)))
+        .returning({ id: productReviews.id });
+      if (!review) {
+        res.status(404).json({ error: 'Review not found' });
+        return;
+      }
+      res.json({ data: { message: 'Review deleted' } });
+    } catch (error) {
+      console.error('Error deleting review:', (error as Error).message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
 export default router;

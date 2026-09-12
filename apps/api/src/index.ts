@@ -18,6 +18,7 @@ import taxRoutes from './routes/tax';
 import subscriptionsRoutes from './routes/subscriptions';
 import aiRoutes from './routes/ai';
 import pushRoutes from './routes/push';
+import blogRoutes from './routes/blog';
 import { db } from './lib/db';
 import { stockReservations, inventoryBatches } from '@pharmaflow/db/schema';
 import { and, isNull, lt, sql, eq } from 'drizzle-orm';
@@ -108,6 +109,7 @@ app.use('/api/tax', taxRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/blog', blogRoutes);
 
 // Global error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

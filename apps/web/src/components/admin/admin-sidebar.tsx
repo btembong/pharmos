@@ -16,6 +16,8 @@ import {
   FlaskConical,
   RefreshCw,
   FolderTree,
+  Star,
+  BookOpen,
 } from "lucide-react";
 
 const navItems = [
@@ -29,6 +31,8 @@ const navItems = [
   { href: "/admin/payments", label: "Payments", icon: DollarSign },
   { href: "/admin/tax-rates", label: "Tax Rates", icon: Receipt },
   { href: "/admin/interactions", label: "Interactions", icon: FlaskConical },
+  { href: "/admin/reviews", label: "Reviews", icon: Star },
+  { href: "/admin/blog", label: "Blog", icon: BookOpen },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: RefreshCw },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

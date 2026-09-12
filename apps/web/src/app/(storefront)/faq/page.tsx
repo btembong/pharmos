@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Frequently Asked Questions | PharmaFlow",
+  description:
+    "Find answers to common questions about ordering, payment, shipping, returns, and our products at PharmaFlow.",
+};
+
 export default function FAQPage() {
   const faqs = [
     {
@@ -38,8 +46,22 @@ export default function FAQPage() {
     },
   ];
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: { "@type": "Answer", text: faq.a },
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <h1 className="text-3xl font-bold text-primary mb-2">Frequently Asked Questions</h1>
       <p className="text-sm text-muted-foreground mb-10">Can't find what you're looking for? Email us at support@pharmospeptide.com</p>
       <div className="space-y-4">
