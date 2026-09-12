@@ -19,7 +19,7 @@ const post = {
   tags: ['ibuprofen', 'acetaminophen', 'tylenol', 'advil', 'pain-relief', 'otc', 'fever'],
   status: 'published' as const,
   publishedAt: new Date(),
-  metaTitle: 'Ibuprofen vs. Acetaminophen: Which Should You Take? | PharmaFlow',
+  metaTitle: 'Ibuprofen vs. Acetaminophen: Which to Take? | PharmaFlow',
   metaDescription:
     'Not sure whether to reach for ibuprofen or acetaminophen? Our pharmacist explains the differences, when to use each, dosing, and safety warnings.',
   relatedProductSlugs: [],
