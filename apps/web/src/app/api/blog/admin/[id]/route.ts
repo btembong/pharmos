@@ -7,16 +7,17 @@ import { isAuthError, requireRole } from '@/lib/auth';
 // GET /api/blog/admin/[id] — fetch single post by ID (admin, includes drafts)
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const auth = await requireRole('super_admin');
     if (isAuthError(auth)) return auth;
 
     const [post] = await db
       .select()
       .from(blogPosts)
-      .where(and(eq(blogPosts.id, params.id), isNull(blogPosts.deletedAt)))
+      .where(and(eq(blogPosts.id, id), isNull(blogPosts.deletedAt)))
       .limit(1);
 
     if (!post) {

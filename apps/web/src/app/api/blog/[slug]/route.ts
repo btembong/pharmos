@@ -8,15 +8,16 @@ import { z } from 'zod';
 // GET /api/blog/[slug] — get single published post
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const [post] = await db
       .select()
       .from(blogPosts)
       .where(
         and(
-          eq(blogPosts.slug, params.slug),
+          eq(blogPosts.slug, slug),
           eq(blogPosts.status, 'published'),
           isNull(blogPosts.deletedAt)
         )
@@ -56,9 +57,10 @@ const updatePostSchema = z.object({
 // PUT /api/blog/[slug] — update post (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const auth = await requireRole('super_admin');
     if (isAuthError(auth)) return auth;
 
@@ -88,7 +90,7 @@ export async function PUT(
     const [post] = await db
       .update(blogPosts)
       .set(updateData)
-      .where(and(eq(blogPosts.slug, params.slug), isNull(blogPosts.deletedAt)))
+      .where(and(eq(blogPosts.slug, slug), isNull(blogPosts.deletedAt)))
       .returning();
 
     if (!post) {
@@ -108,16 +110,17 @@ export async function PUT(
 // DELETE /api/blog/[slug] — soft delete (admin only)
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const auth = await requireRole('super_admin');
     if (isAuthError(auth)) return auth;
 
     const [post] = await db
       .update(blogPosts)
       .set({ deletedAt: new Date() })
-      .where(and(eq(blogPosts.slug, params.slug), isNull(blogPosts.deletedAt)))
+      .where(and(eq(blogPosts.slug, slug), isNull(blogPosts.deletedAt)))
       .returning({ id: blogPosts.id });
 
     if (!post) {
