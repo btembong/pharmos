@@ -9,15 +9,18 @@ import { NewsletterSignup } from "@/components/storefront/newsletter-signup";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Health & Pharmacy Blog | PharmaFlow",
+  title: "Research Peptide & Health Blog | Pharmos",
   description:
-    "Expert articles on medications, supplements, drug interactions, and wellness. Written by licensed pharmacists and health professionals.",
+    "Expert articles on research peptides, OTC medications, drug interactions, and wellness. Science-backed guides from health professionals.",
+  alternates: { canonical: "https://pharmospeptide.com/blog" },
   openGraph: {
-    title: "Health & Pharmacy Blog | PharmaFlow",
-    description:
-      "Expert articles on medications, supplements, drug interactions, and wellness.",
+    title: "Research Peptide & Health Blog | Pharmos",
+    description: "Science-backed articles on research peptides, medications, and wellness.",
     type: "website",
+    url: "https://pharmospeptide.com/blog",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Pharmos Blog" }],
   },
+  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
 };
 
 interface BlogPost {

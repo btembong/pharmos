@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions | PharmaFlow",
+  title: "Frequently Asked Questions | Pharmos",
   description:
-    "Find answers to common questions about ordering, payment, shipping, returns, and our products at PharmaFlow.",
+    "Find answers to common questions about ordering, payment, shipping, returns, and research peptides at Pharmos.",
+  alternates: { canonical: "https://pharmospeptide.com/faq" },
+  openGraph: {
+    title: "Frequently Asked Questions | Pharmos",
+    description: "Common questions about ordering, payment, shipping, and products at Pharmos.",
+    type: "website",
+    url: "https://pharmospeptide.com/faq",
+  },
 };
 
 export default function FAQPage() {

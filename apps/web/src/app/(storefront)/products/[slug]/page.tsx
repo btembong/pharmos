@@ -43,23 +43,30 @@ export async function generateMetadata({
     const primaryImage = product.images?.find((i) => i.isPrimary) ?? product.images?.[0];
 
     const title = product.metaTitle
-      ?? `Buy ${product.name}${product.strength ? ` ${product.strength}` : ""} | PharmaFlow`;
+      ?? `Buy ${product.name}${product.strength ? ` ${product.strength}` : ""} | Pharmos`;
     const description = product.metaDescription
       ?? product.shortDescription
-      ?? `${product.name} — ${product.dosageForm ?? ""}${price ? ` from $${Number(price.amount).toFixed(2)}` : ""}. Licensed US pharmacy, fast nationwide shipping.`;
+      ?? `${product.name}${product.strength ? ` ${product.strength}` : ""}${price ? ` from $${Number(price.amount).toFixed(2)}` : ""}. Research-grade, third-party lab tested. COA included. Fast US shipping.`;
+    const canonicalUrl = `https://pharmospeptide.com/products/${slug}`;
+    const ogImage = primaryImage
+      ? [{ url: primaryImage.url, alt: primaryImage.alt, width: 800, height: 800 }]
+      : [{ url: "/og-image.png", alt: title, width: 1200, height: 630 }];
 
     return {
       title,
       description,
+      alternates: { canonical: canonicalUrl },
       openGraph: {
         title,
         description,
         type: "website",
-        images: primaryImage ? [{ url: primaryImage.url, alt: primaryImage.alt }] : [],
+        url: canonicalUrl,
+        images: ogImage,
       },
+      twitter: { card: "summary_large_image", title, description, images: [ogImage[0].url] },
     };
   } catch {
-    return { title: "Product | PharmaFlow" };
+    return { title: "Product | Pharmos" };
   }
 }
 

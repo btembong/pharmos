@@ -62,21 +62,30 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const { data: post } = await apiClient<{ data: BlogPost }>(`/api/blog/${slug}`);
+    const canonicalUrl = `https://pharmospeptide.com/blog/${slug}`;
+    const title = post.metaTitle ?? `${post.title} | Pharmos Blog`;
+    const description = post.metaDescription ?? post.excerpt ?? `Read ${post.title} on the Pharmos health blog.`;
+    const ogImage = post.featuredImage
+      ? [{ url: post.featuredImage, alt: post.featuredImageAlt ?? title }]
+      : [{ url: "/og-image.png", alt: title }];
+
     return {
-      title: post.metaTitle ?? `${post.title} | PharmaFlow Blog`,
-      description:
-        post.metaDescription ?? post.excerpt ?? `Read ${post.title} on PharmaFlow Blog.`,
+      title,
+      description,
+      alternates: { canonical: canonicalUrl },
       openGraph: {
-        title: post.metaTitle ?? post.title,
-        description: post.metaDescription ?? post.excerpt ?? "",
+        title,
+        description,
         type: "article",
+        url: canonicalUrl,
         publishedTime: post.publishedAt ?? undefined,
         authors: post.author ? [post.author] : undefined,
-        images: post.featuredImage ? [{ url: post.featuredImage }] : [],
+        images: ogImage,
       },
+      twitter: { card: "summary_large_image", title, description, images: [ogImage[0].url] },
     };
   } catch {
-    return { title: "Blog | PharmaFlow" };
+    return { title: "Blog | Pharmos" };
   }
 }
 
