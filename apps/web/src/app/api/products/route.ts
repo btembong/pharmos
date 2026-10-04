@@ -13,7 +13,7 @@ const listQuerySchema = z.object({
   isFeatured: z.coerce.boolean().optional(),
   sortBy: z.enum(['name', 'price_asc', 'price_desc', 'newest']).optional(),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(500).default(20),
 });
 
 export async function GET(request: NextRequest) {
