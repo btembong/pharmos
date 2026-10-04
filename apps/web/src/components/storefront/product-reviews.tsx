@@ -207,7 +207,8 @@ export function ProductReviews({ productSlug }: { productSlug: string }) {
         }),
       });
       if (res.ok) {
-        toast.success("Review submitted! It will appear after moderation.");
+        toast.success("Review submitted! Thank you for your feedback.");
+        fetchReviews();
         setShowForm(false);
         setForm({ rating: 0, title: "", body: "", reviewerName: user?.fullName || "" });
         setReviewImages([]);
@@ -384,16 +385,8 @@ export function ProductReviews({ productSlug }: { productSlug: string }) {
                 {review.images && review.images.length > 0 && (
                   <ReviewPhotos images={review.images} />
                 )}
-                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-3 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">{review.reviewerName}</span>
-                  <span>&middot;</span>
-                  <span>
-                    {new Date(review.createdAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
                 </div>
               </CardContent>
             </Card>
