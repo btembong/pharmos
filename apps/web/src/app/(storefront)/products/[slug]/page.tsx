@@ -50,7 +50,7 @@ export async function generateMetadata({
     const canonicalUrl = `https://pharmospeptide.com/products/${slug}`;
     const ogImage = primaryImage
       ? [{ url: primaryImage.url, alt: primaryImage.alt, width: 800, height: 800 }]
-      : [{ url: "/og-image.png", alt: title, width: 1200, height: 630 }];
+      : [{ url: "/Logo.png", alt: title, width: 1200, height: 630 }];
 
     return {
       title,

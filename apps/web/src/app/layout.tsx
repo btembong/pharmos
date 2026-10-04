@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     url: "https://pharmospeptide.com",
     images: [
       {
-        url: "/og-image.png",
+        url: "/Logo.png",
         width: 1200,
         height: 630,
         alt: "Pharmos — Research Peptides & Health Products",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pharmos — Research Peptides & Health Products",
     description: "US-based retailer of research-grade peptides and health compounds. Third-party lab tested, COA with every order.",
-    images: ["/og-image.png"],
+    images: ["/Logo.png"],
   },
   robots: {
     index: true,

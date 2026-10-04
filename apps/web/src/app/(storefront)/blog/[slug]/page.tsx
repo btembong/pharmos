@@ -67,7 +67,7 @@ export async function generateMetadata({
     const description = post.metaDescription ?? post.excerpt ?? `Read ${post.title} on the Pharmos health blog.`;
     const ogImage = post.featuredImage
       ? [{ url: post.featuredImage, alt: post.featuredImageAlt ?? title }]
-      : [{ url: "/og-image.png", alt: title }];
+      : [{ url: "/Logo.png", alt: title }];
 
     return {
       title,

@@ -18,9 +18,9 @@ export const metadata: Metadata = {
     description: "Science-backed articles on research peptides, medications, and wellness.",
     type: "website",
     url: "https://pharmospeptide.com/blog",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Pharmos Blog" }],
+    images: [{ url: "/Logo.png", width: 1200, height: 630, alt: "Pharmos Blog" }],
   },
-  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
+  twitter: { card: "summary_large_image", images: ["/Logo.png"] },
 };
 
 interface BlogPost {
