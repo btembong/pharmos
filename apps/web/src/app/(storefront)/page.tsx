@@ -245,17 +245,32 @@ export default function HomePage() {
       <ScrollReveal>
         <section className="bg-gradient-to-b from-white to-secondary/20 px-4 py-10 sm:py-16">
           <div className="mx-auto max-w-7xl">
-            <div className="text-center">
-              <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 sm:h-11 sm:w-11">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400 sm:h-5 sm:w-5" />
+            <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
+              <div>
+                <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 sm:h-11 sm:w-11">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400 sm:h-5 sm:w-5" />
+                </div>
+                <h2 className="text-lg font-bold text-primary sm:text-2xl">What Our Customers Say</h2>
+                <p className="mt-1 text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">
+                  Verified reviews from real customers
+                </p>
               </div>
-              <h2 className="mt-3 text-lg font-bold text-primary sm:mt-4 sm:text-2xl">What Our Customers Say</h2>
-              <p className="mt-1 text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">
-                Verified reviews from real customers
-              </p>
+              <Link href="/reviews" className="shrink-0">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm">
+                  View All Reviews <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
             </div>
             <div className="mt-6 sm:mt-10">
               <Testimonials />
+            </div>
+            <div className="mt-6 text-center sm:mt-8">
+              <Link href="/reviews">
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  Read All Customer Reviews
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
