@@ -27,6 +27,30 @@ import { ResearchDisclaimerGate } from "@/components/storefront/research-disclai
 
 export const revalidate = 300;
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  try {
+    const res = await apiClient<{ data: { name: string; description: string | null }[] }>(`/api/categories`);
+    const category = res.data?.find((c: any) => c.slug === slug);
+    const name = category?.name ?? slug.replace(/-/g, " ");
+    const desc = category?.description ?? `Shop ${name} — high-purity research peptides and supplements from Pharmos Peptide.`;
+    return {
+      title: `${name} | Pharmos Peptide`,
+      description: desc,
+      alternates: { canonical: `https://pharmospeptide.com/products/category/${slug}` },
+      openGraph: {
+        title: `${name} | Pharmos Peptide`,
+        description: desc,
+        url: `https://pharmospeptide.com/products/category/${slug}`,
+        images: [{ url: "https://pharmospeptide.com/Logo.png", width: 1200, height: 630 }],
+      },
+      twitter: { card: "summary_large_image", title: `${name} | Pharmos Peptide`, images: ["https://pharmospeptide.com/Logo.png"] },
+    };
+  } catch {
+    return { title: "Products | Pharmos Peptide" };
+  }
+}
+
 // ─── Category config with Pharmos brand color combos ─────────────────────────
 
 interface CategoryConfig {

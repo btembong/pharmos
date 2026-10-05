@@ -1,6 +1,20 @@
+import { Metadata } from "next";
 import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "About Us | Pharmos Peptide",
+  description: "Pharmos Peptide is a US-based supplier of high-purity research peptides and supplements. Lab-tested, COA-verified, and trusted by researchers nationwide.",
+  alternates: { canonical: "https://pharmospeptide.com/about" },
+  openGraph: {
+    title: "About Us | Pharmos Peptide",
+    description: "Pharmos Peptide is a US-based supplier of high-purity research peptides and supplements.",
+    url: "https://pharmospeptide.com/about",
+    images: [{ url: "https://pharmospeptide.com/Logo.png", width: 1200, height: 630 }],
+  },
+  twitter: { card: "summary_large_image", title: "About Us | Pharmos Peptide", images: ["https://pharmospeptide.com/Logo.png"] },
+};
 import {
   ShieldCheck, Award, Truck, HeartPulse, ArrowRight,
   FlaskConical, Users, Star, ClipboardCheck,

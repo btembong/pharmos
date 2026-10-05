@@ -1,3 +1,12 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | Pharmos Peptide",
+  description: "Read the Pharmos Peptide privacy policy to understand how we collect, use, and protect your personal information.",
+  alternates: { canonical: "https://pharmospeptide.com/privacy" },
+  robots: { index: false },
+};
+
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">

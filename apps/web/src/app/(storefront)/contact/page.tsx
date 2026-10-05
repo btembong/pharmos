@@ -1,8 +1,22 @@
+import { Metadata } from "next";
 import { apiClient } from "@/lib/api-client";
 import { Phone, Mail, MapPin, Clock, MessageCircle, Send, ShieldCheck } from "lucide-react";
 import { ContactForm } from "@/components/storefront/contact-form";
 
 export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "Contact Us | Pharmos Peptide",
+  description: "Get in touch with Pharmos Peptide. Questions about orders, products, or shipping? Our team is here to help.",
+  alternates: { canonical: "https://pharmospeptide.com/contact" },
+  openGraph: {
+    title: "Contact Us | Pharmos Peptide",
+    description: "Get in touch with Pharmos Peptide. Questions about orders, products, or shipping? Our team is here to help.",
+    url: "https://pharmospeptide.com/contact",
+    images: [{ url: "https://pharmospeptide.com/Logo.png", width: 1200, height: 630 }],
+  },
+  twitter: { card: "summary_large_image", title: "Contact Us | Pharmos Peptide", images: ["https://pharmospeptide.com/Logo.png"] },
+};
 
 async function getSiteSettings(): Promise<Record<string, string>> {
   try {

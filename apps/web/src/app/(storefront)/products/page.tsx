@@ -1,8 +1,22 @@
+import { Metadata } from "next";
 import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { FlaskConical, ArrowLeft, ArrowRight, ChevronRight, Microscope, ShieldCheck, Award } from "lucide-react";
 import { ProductFilters } from "@/components/storefront/product-filters";
+
+export const metadata: Metadata = {
+  title: "Research Peptides & Supplements | Pharmos Peptide",
+  description: "Browse our full catalog of high-purity research peptides, nootropics, and wellness supplements. Lab-tested, COA-verified, and shipped across the US.",
+  alternates: { canonical: "https://pharmospeptide.com/products" },
+  openGraph: {
+    title: "Research Peptides & Supplements | Pharmos Peptide",
+    description: "Browse our full catalog of high-purity research peptides, nootropics, and wellness supplements.",
+    url: "https://pharmospeptide.com/products",
+    images: [{ url: "https://pharmospeptide.com/Logo.png", width: 1200, height: 630 }],
+  },
+  twitter: { card: "summary_large_image", title: "Research Peptides & Supplements | Pharmos Peptide", images: ["https://pharmospeptide.com/Logo.png"] },
+};
 import { QuickAddButton } from "@/components/storefront/quick-add-button";
 import { StockBadge } from "@/components/storefront/stock-badge";
 import { ProductRating } from "@/components/storefront/product-rating";

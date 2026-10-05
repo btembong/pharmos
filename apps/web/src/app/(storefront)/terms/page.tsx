@@ -1,3 +1,12 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service | Pharmos Peptide",
+  description: "Read the Pharmos Peptide terms of service and conditions of use.",
+  alternates: { canonical: "https://pharmospeptide.com/terms" },
+  robots: { index: false },
+};
+
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
