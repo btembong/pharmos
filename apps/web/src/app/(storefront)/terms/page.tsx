@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Terms of Service | Pharmos Peptide",
   description: "Read the Pharmos Peptide terms of service and conditions of use.",
   alternates: { canonical: "https://pharmospeptide.com/terms" },
-  robots: { index: false },
+  robots: { index: true, follow: true },
 };
 
 export default function TermsPage() {

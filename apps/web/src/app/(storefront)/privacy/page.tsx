@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy | Pharmos Peptide",
   description: "Read the Pharmos Peptide privacy policy to understand how we collect, use, and protect your personal information.",
   alternates: { canonical: "https://pharmospeptide.com/privacy" },
-  robots: { index: false },
+  robots: { index: true, follow: true },
 };
 
 export default function PrivacyPage() {
